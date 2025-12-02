@@ -8,8 +8,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SoulSpace - ${botName}</title>
     <style>
-        /* --- RESET --- */
         * { margin: 0; padding: 0; box-sizing: border-box; }
+
         body { 
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background: #f9fafb;
@@ -17,9 +17,8 @@
             overflow: hidden; 
         }
 
-        /* --- MAIN LAYOUT (Matches Navigation) --- */
         .main-content {
-            margin-left: 16rem; /* Width of the sidebar */
+            margin-left: 16rem;
             height: 100vh;
             display: flex;
             flex-direction: column;
@@ -30,7 +29,6 @@
             .main-content { margin-left: 0; }
         }
 
-        /* --- CHAT CONTAINER --- */
         .chat-container {
             flex: 1;
             display: flex;
@@ -40,7 +38,6 @@
             overflow: hidden; 
         }
 
-        /* --- CHAT ELEMENTS --- */
         .chat-header { 
             background: linear-gradient(135deg, #3b82f6, #9333ea); 
             color: white; 
@@ -279,7 +276,27 @@
             if(m.includes('anxious') || m.includes('stress')) {
                 return { text: "I hear you. Try a simple breathing exercise: Inhale for 4 seconds, hold for 7, exhale for 8.", quickReplies: ["Try exercise", "Other tips"] };
             }
-            return { text: "I'm here for you. Could you tell me more about that?", quickReplies: ["Managing stress", "Improving sleep"] };
+            // 2. Check for Sleep (Matches "I want to improve my sleep")
+            else if (m.includes('sleep') || m.includes('insomnia') || m.includes('tired')) {
+                return { 
+                    text: "Good sleep is the foundation of mental health. Establishing a routine helps. Have you tried avoiding screens 30 minutes before bed?", 
+                    quickReplies: ["Sleep hygiene tips", "Guided sleep meditation", "Relaxation sounds"] 
+                };
+            }
+
+            // 3. Check for Mindfulness (Matches "Tell me about mindfulness")
+            else if (m.includes('mindfulness') || m.includes('meditation') || m.includes('present')) {
+                return { 
+                    text: "Mindfulness is simply observing the present moment without judgment. It helps ground us. Would you like to try a quick 1-minute practice?", 
+                    quickReplies: ["Start 1-min practice", "What are the benefits?", "Daily mindfulness"] 
+                };
+            }
+
+            // 4. Default Response (If no keywords match)
+            return { 
+                text: "I'm here to listen. I can help with anxiety, sleep, stress, or mindfulness. What's on your mind right now?", 
+                quickReplies: ["I'm feeling anxious", "I can't sleep", "Tell me about mindfulness"] 
+            };
         }
 
         function clearChat() { window.location.reload(); }

@@ -26,6 +26,8 @@ public class ChatbotServlet extends HttpServlet {
         // 2. Setup Suggestion Cards
         List<SuggestionCard> suggestions = new ArrayList<>();
 
+
+        // Change to dynmaic data in the backend later
         suggestions.add(new SuggestionCard(
             "Feeling Anxious", 
             "Get anxiety coping strategies", 
