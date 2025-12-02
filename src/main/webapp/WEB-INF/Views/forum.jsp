@@ -188,7 +188,7 @@
             <div class="forum-list">
                 
                 <c:forEach var="post" items="${forumPosts}">
-                    <div class="forum-post ${post.pinned ? 'pinned' : ''}" onclick="viewPost(${post.id})">
+                    <div class="forum-post ${post.pinned ? 'pinned' : ''}" onclick="window.location.href='${pageContext.request.contextPath}/forum/post?id=${post.id}'">
                         <div class="post-header">
                             <div class="post-avatar" style="background: ${post.authorColor};">
                                 ${post.authorInitials}

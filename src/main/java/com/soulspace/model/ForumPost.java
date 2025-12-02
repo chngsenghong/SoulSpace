@@ -1,6 +1,7 @@
 package com.soulspace.model;
 
-import java.util.List;
+import java.util.ArrayList;
+import java.util.List; 
 
 public class ForumPost {
     private int id;
@@ -8,16 +9,17 @@ public class ForumPost {
     private String excerpt;
     private String authorName;
     private String authorInitials;
-    private String authorColor; // CSS hex color (e.g., "#9333ea")
+    private String authorColor;
     private String category;
     private List<String> tags;
     private int likes;
     private int replies;
     private int views;
-    private String timeAgo; // e.g., "3 hours ago"
+    private String timeAgo; 
     private boolean isPinned;
     private boolean isLikedByCurrentUser;
     private boolean isBookmarked;
+    private List<Comment> comments;
 
     // Constructor
     public ForumPost(int id, String title, String excerpt, String authorName, 
@@ -39,9 +41,9 @@ public class ForumPost {
         this.likes = 0; // Default
         this.isLikedByCurrentUser = false;
         this.isBookmarked = false;
+        this.comments = new ArrayList<>();
     }
-
-    // Getters and Setters
+    
     public int getId() { return id; }
     public String getTitle() { return title; }
     public String getExcerpt() { return excerpt; }
@@ -58,4 +60,6 @@ public class ForumPost {
     public void setLikedByCurrentUser(boolean likedByCurrentUser) { isLikedByCurrentUser = likedByCurrentUser; }
     public boolean isBookmarked() { return isBookmarked; }
     public void setBookmarked(boolean bookmarked) { isBookmarked = bookmarked; }
+    public List<Comment> getComments() { return comments; }
+    public void addComment(Comment comment) { this.comments.add(comment); }
 }
