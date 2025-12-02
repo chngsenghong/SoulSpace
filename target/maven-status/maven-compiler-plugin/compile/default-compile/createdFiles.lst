@@ -1,0 +1,8 @@
+com\soulspace\controller\BookingServlet.class
+com\soulspace\controller\LearningServlet.class
+com\soulspace\model\SuggestionCard.class
+com\soulspace\controller\ChatbotServlet.class
+com\soulspace\controller\ForumServlet.class
+com\soulspace\model\ForumPost.class
+com\soulspace\controller\DashboardServlet.class
+com\soulspace\controller\LoginServlet.class

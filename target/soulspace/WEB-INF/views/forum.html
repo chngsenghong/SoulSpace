@@ -1,0 +1,863 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SoulSpace - Community Forum</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            font-size: 16px;
+            line-height: 1.5;
+            color: #1a1a1a;
+            background: #f9fafb;
+        }
+
+        .container {
+            padding: 1rem;
+            max-width: 80rem;
+            margin: 0 auto;
+        }
+
+        @media (min-width: 1024px) {
+            .container {
+                padding: 2rem;
+            }
+        }
+
+        .page-header {
+            padding-top: 1rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .page-header-left h1 {
+            font-size: 1.875rem;
+            font-weight: 500;
+            color: #1a1a1a;
+            margin-bottom: 0.25rem;
+        }
+
+        .page-header-left p {
+            color: #6b7280;
+        }
+
+        .btn-primary {
+            padding: 0.75rem 1.5rem;
+            background: linear-gradient(135deg, #3b82f6, #9333ea);
+            color: white;
+            border: none;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.2s;
+        }
+
+        .btn-primary:hover {
+            transform: scale(1.02);
+            box-shadow: 0 4px 6px rgba(59, 130, 246, 0.3);
+        }
+
+        .btn-primary svg {
+            width: 1.25rem;
+            height: 1.25rem;
+        }
+
+        /* Search and Filter */
+        .search-section {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .search-input {
+            flex: 1;
+            min-width: 250px;
+            padding: 0.75rem 1rem 0.75rem 3rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            background: white;
+            background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="%236b7280" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>');
+            background-repeat: no-repeat;
+            background-position: 0.75rem center;
+            background-size: 1.25rem;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .filter-select {
+            padding: 0.75rem 1rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            background: white;
+            cursor: pointer;
+        }
+
+        .filter-select:focus {
+            outline: none;
+            border-color: #3b82f6;
+        }
+
+        /* Category Tabs */
+        .category-tabs {
+            display: flex;
+            gap: 0.5rem;
+            overflow-x: auto;
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.5rem;
+        }
+
+        .category-tab {
+            padding: 0.5rem 1rem;
+            background: white;
+            border: 1px solid #d1d5db;
+            border-radius: 9999px;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .category-tab:hover,
+        .category-tab.active {
+            background: #eff6ff;
+            border-color: #3b82f6;
+            color: #2563eb;
+        }
+
+        /* Forum Posts */
+        .forum-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .forum-post {
+            background: white;
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+            border: 1px solid #e5e7eb;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .forum-post:hover {
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .post-header {
+            display: flex;
+            align-items: flex-start;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .post-avatar {
+            width: 3rem;
+            height: 3rem;
+            border-radius: 50%;
+            background: #2563eb;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 500;
+            flex-shrink: 0;
+        }
+
+        .post-header-content {
+            flex: 1;
+        }
+
+        .post-author {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .post-author-name {
+            font-weight: 500;
+            color: #1a1a1a;
+        }
+
+        .post-badge {
+            padding: 0.125rem 0.5rem;
+            background: #eff6ff;
+            color: #1e40af;
+            border-radius: 0.25rem;
+            font-size: 0.75rem;
+        }
+
+        .post-meta {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 0.875rem;
+            color: #6b7280;
+        }
+
+        .post-meta-item {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .post-meta-item svg {
+            width: 1rem;
+            height: 1rem;
+        }
+
+        .post-content h3 {
+            font-size: 1.125rem;
+            font-weight: 500;
+            color: #1a1a1a;
+            margin-bottom: 0.5rem;
+        }
+
+        .post-excerpt {
+            color: #6b7280;
+            margin-bottom: 1rem;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .post-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .post-tag {
+            padding: 0.25rem 0.75rem;
+            background: #f3f4f6;
+            color: #374151;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+        }
+
+        .post-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding-top: 1rem;
+            border-top: 1px solid #e5e7eb;
+        }
+
+        .post-stats {
+            display: flex;
+            gap: 1.5rem;
+        }
+
+        .post-stat {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.875rem;
+            color: #6b7280;
+        }
+
+        .post-stat svg {
+            width: 1.125rem;
+            height: 1.125rem;
+        }
+
+        .post-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .post-action-btn {
+            padding: 0.5rem;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            color: #6b7280;
+            transition: all 0.2s;
+            border-radius: 0.375rem;
+        }
+
+        .post-action-btn:hover {
+            background: #f3f4f6;
+            color: #1a1a1a;
+        }
+
+        .post-action-btn.active {
+            color: #2563eb;
+        }
+
+        .post-action-btn svg {
+            width: 1.25rem;
+            height: 1.25rem;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 1rem;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 0.75rem;
+            max-width: 42rem;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            padding: 2rem;
+        }
+
+        .modal-header {
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-header h2 {
+            font-size: 1.5rem;
+            font-weight: 500;
+            color: #1a1a1a;
+            margin-bottom: 0.5rem;
+        }
+
+        .modal-header p {
+            color: #6b7280;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            display: block;
+            font-weight: 500;
+            color: #1a1a1a;
+            margin-bottom: 0.5rem;
+        }
+
+        .form-input,
+        .form-textarea {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            font-family: inherit;
+        }
+
+        .form-textarea {
+            min-height: 150px;
+            resize: vertical;
+        }
+
+        .form-input:focus,
+        .form-textarea:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+        }
+
+        .btn-outline {
+            padding: 0.75rem 1.5rem;
+            background: white;
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-outline:hover {
+            background: #f9fafb;
+        }
+
+        /* Pinned Post Banner */
+        .pinned-post {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            border: 1px solid #fbbf24;
+        }
+
+        .pinned-post .post-author-name::before {
+            content: '📌 ';
+        }
+
+        /* Community Guidelines */
+        .guidelines-banner {
+            background: #eff6ff;
+            border: 1px solid #bfdbfe;
+            border-radius: 0.75rem;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .guidelines-icon {
+            width: 2.5rem;
+            height: 2.5rem;
+            background: white;
+            border-radius: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .guidelines-icon svg {
+            width: 1.5rem;
+            height: 1.5rem;
+            color: #2563eb;
+        }
+
+        .guidelines-content {
+            flex: 1;
+        }
+
+        .guidelines-content h4 {
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #1e40af;
+            margin-bottom: 0.25rem;
+        }
+
+        .guidelines-content p {
+            font-size: 0.875rem;
+            color: #1e40af;
+        }
+
+        .guidelines-link {
+            color: #2563eb;
+            text-decoration: underline;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Page Header -->
+        <div class="page-header">
+            <div class="page-header-left">
+                <h1>Community Forum</h1>
+                <p>Connect, share, and support each other</p>
+            </div>
+            <button class="btn-primary" onclick="openNewPostModal()">
+                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+                </svg>
+                New Post
+            </button>
+        </div>
+
+        <!-- Community Guidelines Banner -->
+        <div class="guidelines-banner">
+            <div class="guidelines-icon">
+                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+            </div>
+            <div class="guidelines-content">
+                <h4>Community Guidelines</h4>
+                <p>Be respectful, supportive, and kind. <span class="guidelines-link" onclick="showGuidelines()">Read full guidelines</span></p>
+            </div>
+        </div>
+
+        <!-- Search and Filter -->
+        <div class="search-section">
+            <input type="text" class="search-input" placeholder="Search discussions...">
+            <select class="filter-select">
+                <option>Latest Posts</option>
+                <option>Most Replies</option>
+                <option>Most Helpful</option>
+                <option>Trending</option>
+            </select>
+        </div>
+
+        <!-- Category Tabs -->
+        <div class="category-tabs">
+            <button class="category-tab active" onclick="filterByCategory('all')">All Topics</button>
+            <button class="category-tab" onclick="filterByCategory('anxiety')">Anxiety & Stress</button>
+            <button class="category-tab" onclick="filterByCategory('depression')">Depression</button>
+            <button class="category-tab" onclick="filterByCategory('relationships')">Relationships</button>
+            <button class="category-tab" onclick="filterByCategory('selfcare')">Self-Care</button>
+            <button class="category-tab" onclick="filterByCategory('success')">Success Stories</button>
+            <button class="category-tab" onclick="filterByCategory('general')">General Discussion</button>
+        </div>
+
+        <!-- Forum Posts List -->
+        <div class="forum-list">
+            <!-- Pinned Post -->
+            <div class="forum-post pinned-post" onclick="viewPost(1)">
+                <div class="post-header">
+                    <div class="post-avatar">AD</div>
+                    <div class="post-header-content">
+                        <div class="post-author">
+                            <span class="post-author-name">Admin</span>
+                            <span class="post-badge">Moderator</span>
+                        </div>
+                        <div class="post-meta">
+                            <span class="post-meta-item">
+                                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                2 days ago
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                <div class="post-content">
+                    <h3>Welcome to the SoulSpace Community Forum!</h3>
+                    <p class="post-excerpt">We're thrilled to have you here. This is a safe space for sharing experiences, seeking support, and connecting with others on their mental health journey. Please remember to be kind, respectful, and supportive of one another.</p>
+                    <div class="post-tags">
+                        <span class="post-tag">Announcement</span>
+                        <span class="post-tag">Community</span>
+                    </div>
+                </div>
+                <div class="post-footer">
+                    <div class="post-stats">
+                        <span class="post-stat">
+                            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                            </svg>
+                            45 replies
+                        </span>
+                        <span class="post-stat">
+                            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                            </svg>
+                            1.2k views
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Regular Posts -->
+            <div class="forum-post" onclick="viewPost(2)">
+                <div class="post-header">
+                    <div class="post-avatar" style="background: #9333ea;">SM</div>
+                    <div class="post-header-content">
+                        <div class="post-author">
+                            <span class="post-author-name">Sarah M.</span>
+                        </div>
+                        <div class="post-meta">
+                            <span class="post-meta-item">
+                                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                3 hours ago
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                <div class="post-content">
+                    <h3>How I overcame my anxiety through mindfulness</h3>
+                    <p class="post-excerpt">I wanted to share my journey of how practicing mindfulness for just 10 minutes a day completely changed my relationship with anxiety. It wasn't easy at first, but the results have been incredible...</p>
+                    <div class="post-tags">
+                        <span class="post-tag">Anxiety</span>
+                        <span class="post-tag">Success Story</span>
+                        <span class="post-tag">Mindfulness</span>
+                    </div>
+                </div>
+                <div class="post-footer">
+                    <div class="post-stats">
+                        <span class="post-stat">
+                            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                            </svg>
+                            23 replies
+                        </span>
+                        <span class="post-stat">
+                            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                            </svg>
+                            345 views
+                        </span>
+                    </div>
+                    <div class="post-actions">
+                        <button class="post-action-btn" onclick="likePost(event, 2)" title="Like">
+                            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5" />
+                            </svg>
+                        </button>
+                        <button class="post-action-btn" onclick="bookmarkPost(event, 2)" title="Bookmark">
+                            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Post 3 -->
+            <div class="forum-post" onclick="viewPost(3)">
+                <div class="post-header">
+                    <div class="post-avatar" style="background: #10b981;">JD</div>
+                    <div class="post-header-content">
+                        <div class="post-author">
+                            <span class="post-author-name">John D.</span>
+                        </div>
+                        <div class="post-meta">
+                            <span class="post-meta-item">
+                                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                5 hours ago
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                <div class="post-content">
+                    <h3>Seeking advice on managing work stress</h3>
+                    <p class="post-excerpt">I've been feeling overwhelmed with work lately and it's affecting my sleep and mood. Has anyone found effective strategies for managing work-related stress? I'd really appreciate any advice or tips...</p>
+                    <div class="post-tags">
+                        <span class="post-tag">Stress</span>
+                        <span class="post-tag">Work-Life Balance</span>
+                        <span class="post-tag">Advice Needed</span>
+                    </div>
+                </div>
+                <div class="post-footer">
+                    <div class="post-stats">
+                        <span class="post-stat">
+                            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                            </svg>
+                            12 replies
+                        </span>
+                        <span class="post-stat">
+                            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                            </svg>
+                            189 views
+                        </span>
+                    </div>
+                    <div class="post-actions">
+                        <button class="post-action-btn" onclick="likePost(event, 3)" title="Like">
+                            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5" />
+                            </svg>
+                        </button>
+                        <button class="post-action-btn" onclick="bookmarkPost(event, 3)" title="Bookmark">
+                            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Post 4 -->
+            <div class="forum-post" onclick="viewPost(4)">
+                <div class="post-header">
+                    <div class="post-avatar" style="background: #f59e0b;">EM</div>
+                    <div class="post-header-content">
+                        <div class="post-author">
+                            <span class="post-author-name">Emily R.</span>
+                        </div>
+                        <div class="post-meta">
+                            <span class="post-meta-item">
+                                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                1 day ago
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                <div class="post-content">
+                    <h3>Self-care routine that changed my life</h3>
+                    <p class="post-excerpt">After struggling for years, I finally found a self-care routine that works for me. I wanted to share it in case it helps someone else. It includes morning meditation, journaling, and setting boundaries...</p>
+                    <div class="post-tags">
+                        <span class="post-tag">Self-Care</span>
+                        <span class="post-tag">Routine</span>
+                        <span class="post-tag">Success Story</span>
+                    </div>
+                </div>
+                <div class="post-footer">
+                    <div class="post-stats">
+                        <span class="post-stat">
+                            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                            </svg>
+                            31 replies
+                        </span>
+                        <span class="post-stat">
+                            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                            </svg>
+                            567 views
+                        </span>
+                    </div>
+                    <div class="post-actions">
+                        <button class="post-action-btn" onclick="likePost(event, 4)" title="Like">
+                            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5" />
+                            </svg>
+                        </button>
+                        <button class="post-action-btn" onclick="bookmarkPost(event, 4)" title="Bookmark">
+                            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- New Post Modal -->
+    <div class="modal" id="newPostModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Create New Post</h2>
+                <p>Share your thoughts, ask questions, or start a discussion</p>
+            </div>
+            <form id="newPostForm" onsubmit="submitPost(event)">
+                <div class="form-group">
+                    <label class="form-label" for="postTitle">Title</label>
+                    <input type="text" id="postTitle" class="form-input" placeholder="Give your post a clear title" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="postCategory">Category</label>
+                    <select id="postCategory" class="filter-select" style="width: 100%;" required>
+                        <option value="">Select a category</option>
+                        <option value="anxiety">Anxiety & Stress</option>
+                        <option value="depression">Depression</option>
+                        <option value="relationships">Relationships</option>
+                        <option value="selfcare">Self-Care</option>
+                        <option value="success">Success Stories</option>
+                        <option value="general">General Discussion</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="postContent">Content</label>
+                    <textarea id="postContent" class="form-textarea" placeholder="Share your thoughts..." required></textarea>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="postTags">Tags (comma-separated)</label>
+                    <input type="text" id="postTags" class="form-input" placeholder="e.g., anxiety, mindfulness, coping strategies">
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn-outline" onclick="closeNewPostModal()">Cancel</button>
+                    <button type="submit" class="btn-primary">
+                        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                        </svg>
+                        Post
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function openNewPostModal() {
+            document.getElementById('newPostModal').classList.add('active');
+        }
+
+        function closeNewPostModal() {
+            document.getElementById('newPostModal').classList.remove('active');
+            document.getElementById('newPostForm').reset();
+        }
+
+        function submitPost(event) {
+            event.preventDefault();
+            const title = document.getElementById('postTitle').value;
+            const category = document.getElementById('postCategory').value;
+            const content = document.getElementById('postContent').value;
+            const tags = document.getElementById('postTags').value;
+
+            // In JSP, submit to servlet
+            alert('Post created!\nTitle: ' + title + '\nCategory: ' + category);
+            closeNewPostModal();
+            
+            // window.location.href = '/soulspace/forum/create';
+        }
+
+        function viewPost(id) {
+            // Navigate to post detail page
+            // window.location.href = '/soulspace/forum/post/' + id;
+            alert('Opening post ' + id);
+        }
+
+        function filterByCategory(category) {
+            // Update active tab
+            document.querySelectorAll('.category-tab').forEach(tab => tab.classList.remove('active'));
+            event.target.classList.add('active');
+
+            // In real app, filter posts by category
+            console.log('Filtering by category:', category);
+        }
+
+        function likePost(event, id) {
+            event.stopPropagation();
+            event.currentTarget.classList.toggle('active');
+            // In JSP: send like request to servlet
+            console.log('Liked post:', id);
+        }
+
+        function bookmarkPost(event, id) {
+            event.stopPropagation();
+            event.currentTarget.classList.toggle('active');
+            // In JSP: send bookmark request to servlet
+            console.log('Bookmarked post:', id);
+        }
+
+        function showGuidelines() {
+            alert('Community Guidelines:\n\n1. Be respectful and kind\n2. No hate speech or discrimination\n3. Protect privacy - no personal information\n4. Stay on topic\n5. Support each other\n6. Report inappropriate content\n7. Follow professional advice');
+        }
+
+        // Close modal when clicking outside
+        document.getElementById('newPostModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeNewPostModal();
+            }
+        });
+    </script>
+</body>
+</html>
