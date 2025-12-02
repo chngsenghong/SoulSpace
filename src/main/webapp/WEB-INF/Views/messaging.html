@@ -1,0 +1,814 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>SoulSpace — Messaging (SPA)</title>
+
+  <!-- ===== tiny reset + fonts ===== -->
+  <style>
+    :root{
+      --bg:#f7f9fb; --muted:#6b7280; --accent:#2563eb; --card:#fff; --soft-border:#e8eaee;
+      --shadow: 0 6px 18px rgba(17,24,39,0.06);
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+      background:var(--bg);
+      color:#111827;
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+    }
+
+    /* layout */
+    .app {
+      display:flex;
+      min-height:100vh;
+      gap:24px;
+      align-items:flex-start;
+    }
+    /* sidebar placeholder */
+    #sidebar {
+      width:240px;
+      background:#fff;
+      border-right:1px solid var(--soft-border);
+      min-height:100vh;
+      padding:20px 18px;
+    }
+    /* content area */
+    .main {
+      flex:1;
+      padding:28px;
+      max-width:1200px;
+      margin:0 auto;
+    }
+
+    /* left menu icons + labels (simple placeholder look) */
+    .brand {
+      display:flex; align-items:center; gap:12px; margin-bottom:28px;
+    }
+    .brand .logo {
+      width:48px;height:48px;border-radius:12px;background:linear-gradient(135deg,#7c3aed,#3b82f6);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;
+    }
+    .brand h3{margin:0;font-size:1rem}
+    .nav-list { list-style:none;padding:0;margin:0;display:block; }
+    .nav-item { display:flex; align-items:center; gap:12px; padding:12px; border-radius:8px; color:#111827; margin-bottom:6px; cursor:pointer; }
+    .nav-item.active{ background:#eef5ff; color:var(--accent); font-weight:600; }
+
+    /* page header & banner */
+    .page-header h1 { font-size:28px; margin:0 0 8px 0; }
+    .page-header p { margin:0; color:var(--muted) }
+
+    .banner {
+      margin:18px 0;
+      background:#eaf4ff;
+      border-radius:10px;
+      padding:14px 18px;
+      border:1px solid rgba(37,99,235,0.08);
+      color:var(--accent);
+      display:flex; align-items:center; gap:10px;
+    }
+
+    /* tabs pill */
+    .tabs {
+      display:flex; gap:12px; margin:18px 0;
+      align-items:center;
+    }
+    .tab-pill { background:#f2f4f6; padding:8px 16px; border-radius:999px; display:flex; gap:12px; align-items:center; }
+    .tab-btn { padding:10px 24px; border-radius:999px; background:transparent; border:none; cursor:pointer; color:#111827; font-weight:600; }
+    .tab-btn.active { background:#fff; box-shadow:var(--shadow); }
+
+    /* available professionals grid (match screenshot spacing) */
+    .grid { display:grid; grid-template-columns:repeat(2,1fr); gap:18px; }
+    .card {
+      background:var(--card);
+      border-radius:12px;
+      padding:14px;
+      border:1px solid var(--soft-border);
+      box-shadow: 0 1px 2px rgba(16,24,40,0.02);
+      display:flex; gap:14px; align-items:center;
+    }
+    .avatar { width:56px;height:56px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700; }
+    .avatar.blue{background:linear-gradient(135deg,#2563eb,#7c3aed)}
+    .prof-info h4 { margin:0; font-size:16px }
+    .prof-info p { margin:6px 0 0 0; color:var(--muted); font-size:13px }
+
+    .action-row { margin-top:12px; display:flex; align-items:center; gap:12px; width:100% }
+    .btn { padding:12px 20px; border-radius:10px; border:none; cursor:pointer; font-weight:600; display:inline-flex; gap:10px; align-items:center; }
+    .btn.primary { background:#05020a; color:#fff; width:100%; box-shadow:0 6px 18px rgba(2,6,23,0.25); }
+    .btn.gray { background:#9b9aa0; color:#fff; width:100% }
+    .status-online { color:#059669; font-size:13px; display:inline-flex; gap:6px; align-items:center; }
+
+    /* active chat list (left column on chat screen) */
+    .chat-layout { display:flex; gap:18px; }
+    .left-pane { width:320px; }
+    .chat-list-item { padding:12px; border-radius:10px; border:1px solid var(--soft-border); margin-bottom:10px; cursor:pointer; display:flex; gap:12px; align-items:center; }
+    .chat-list-item.active { outline:2px solid rgba(37,99,235,0.08); box-shadow:var(--shadow); background:#fff; }
+    .badge { padding:6px 10px; border-radius:999px; font-weight:600; font-size:13px; background:#d1fae5; color:#065f46; }
+
+    /* chat panel */
+    .chat-panel { flex:1; background:var(--card); border-radius:12px; padding:18px; border:1px solid var(--soft-border); min-height:460px; display:flex; flex-direction:column; gap:12px; }
+    .chat-header { display:flex; align-items:center; justify-content:space-between; gap:12px; }
+    .chat-messages { flex:1; overflow:auto; padding-right:8px; }
+    .msg { max-width:70%; padding:12px 14px; border-radius:14px; margin:8px 0; display:inline-block; font-size:14px; }
+    .msg.me { background:#0950ff;color:#fff; margin-left:auto; border-bottom-right:2px solid rgba(0,0,0,0.08); }
+    .msg.them { background:#f3f4f6; color:#111827; border-bottom-left:2px solid rgba(0,0,0,0.04); }
+
+    /* modal overlay */
+    .overlay {
+      position:fixed; inset:0; background:rgba(0,0,0,0.45); display:none; align-items:center; justify-content:center; z-index:1000;
+    }
+    .overlay.active { display:flex; }
+    .modal {
+      width:720px; background:#fff; border-radius:12px; padding:20px; box-shadow:var(--shadow); max-height:90vh; overflow:auto;
+    }
+    .modal .modal-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; }
+    .modal .modal-body { font-size:14px; color:var(--muted) }
+
+    /* calendar (simple) */
+    .calendar { border:1px solid var(--soft-border); padding:12px; border-radius:10px; background:#fff; width:100%; }
+    .cal-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
+    .cal-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:8px; text-align:center; }
+    .cal-day { padding:10px; border-radius:8px; cursor:pointer; }
+    .cal-day.other { color:#9aa0a6; background:transparent; }
+    .cal-day.today { border:1px solid rgba(37,99,235,0.12); }
+    .cal-day.selected { background:#05020a;color:#fff; }
+
+    /* small screens responsive */
+    @media (max-width:980px){
+      .grid { grid-template-columns:1fr; }
+      #sidebar { display:none; }
+      .main { padding:18px; }
+      .modal { width:92%; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+
+    <!-- SIDEBAR: will try to fetch 'navigation.html' and inject.
+         If you plan to import a JSP fragment later, you can replace this entire div with your JSP include.
+         Code won't break if navigation file is absent. -->
+    <aside id="sidebar" aria-hidden="false">
+      <div class="brand">
+        <div class="logo">SS</div>
+        <div>
+          <h3>SoulSpace</h3>
+          <div style="color:var(--muted);font-size:12px">Mental Health Hub</div>
+        </div>
+      </div>
+
+      <ul class="nav-list" role="navigation">
+        <li class="nav-item"><span>🏠</span> Home</li>
+        <li class="nav-item active"><span>📅</span> Booking</li>
+        <li class="nav-item" style="background:#eef5ff;color:var(--accent)"><span>💬</span> Messages</li>
+        <li class="nav-item"><span>📋</span> Assessment</li>
+        <li class="nav-item"><span>🤖</span> AI Guide</li>
+      </ul>
+
+      <div style="position: absolute; bottom:20px; left:20px;">
+        <div style="display:flex;gap:10px;align-items:center">
+          <div style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#f97316,#ef4444);display:flex;align-items:center;justify-content:center;color:#fff">JD</div>
+          <div>
+            <div style="font-weight:600">John Doe</div>
+            <div style="color:var(--muted);font-size:12px">View Profile</div>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="main" role="main">
+      <div class="page-header">
+        <h1>Secure Messaging</h1>
+        <p>Private communication with mental health professionals</p>
+      </div>
+
+      <div class="banner">
+        <span>🔒</span>
+        <div>All conversations are encrypted and confidential</div>
+      </div>
+
+      <!-- TABS: Active Chats / Chat History / Start New Chat -->
+      <div class="tabs" id="topTabs" role="tablist">
+        <div class="tab-pill" aria-hidden="true">
+          <button class="tab-btn active" data-view="main-list">Active Chats</button>
+          <button class="tab-btn" data-view="history">Chat History</button>
+          <button class="tab-btn" data-view="new-chat">Start New Chat</button>
+        </div>
+      </div>
+
+      <!-- MAIN VIEWS (we will show/hide these) -->
+      <div id="views">
+
+        <!-- ---- VIEW: main-list (screenshot 1) ---- -->
+        <section id="main-list" class="view" aria-hidden="false">
+          <h3 style="margin-bottom:12px;color:#111827">Available Professionals</h3>
+
+          <!-- professionals grid -->
+          <div class="grid" id="proGrid">
+            <!-- cards will be inserted from JS sample data -->
+          </div>
+        </section>
+
+        <!-- ---- VIEW: chat-screen (screenshot 2) ---- -->
+        <section id="chat-screen" class="view" style="display:none;">
+          <div class="chat-layout">
+            <!-- left: active chats -->
+            <div class="left-pane">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+                <strong>Active Chats</strong>
+                <small style="color:var(--muted)">2</small>
+              </div>
+              <div id="activeChatsList">
+                <!-- populated by JS -->
+              </div>
+            </div>
+
+            <!-- right: chat panel -->
+            <div class="chat-panel" id="chatPanel">
+              <div class="chat-header">
+                <div style="display:flex; align-items:center; gap:12px;">
+                  <div class="avatar blue" id="chatHeroAvatar" style="width:44px;height:44px;border-radius:8px">MC</div>
+                  <div>
+                    <div id="chatHeroName" style="font-weight:700">Dr. Michael Chen</div>
+                    <div style="color:var(--muted);font-size:13px" id="chatHeroRole">Psychiatrist</div>
+                  </div>
+                </div>
+                <div style="display:flex;gap:10px;align-items:center;">
+                  <button class="btn" id="notesBtn" style="background:#fff;border:1px solid var(--soft-border)">📓 Notes</button>
+                  <button class="btn" id="bookBtn" style="background:#fff;border:1px solid var(--soft-border)">📅 Book</button>
+                  <button class="btn" id="endChatBtn" style="background:#ef4444;color:#fff;border:none">End Chat</button>
+                </div>
+              </div>
+
+              <div class="chat-messages" id="chatMessages" aria-live="polite">
+                <!-- messages appended here -->
+              </div>
+
+              <div style="display:flex;gap:8px;align-items:center;">
+                <input id="chatInput" placeholder="Write a message..." style="flex:1;padding:10px;border-radius:10px;border:1px solid var(--soft-border)" />
+                <button class="btn primary" id="sendBtn">Send</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ---- VIEW: history (screenshot 3) ---- -->
+        <section id="history" class="view" style="display:none;">
+          <h3 style="margin-bottom:8px">Chat History</h3>
+          <div id="historyList">
+            <!-- history cards injected -->
+          </div>
+        </section>
+
+        <!-- ---- VIEW: conversation modal (screenshot 4) - rendered in overlay when used ---- -->
+        <!-- This view is a modal and not shown inside the main flow; kept empty here. -->
+
+        <!-- ---- VIEW: end-session confirm (screenshot 5) - modal triggered by End Chat button ---- -->
+        <!-- ---- VIEW: new chat (screenshot 6) ---- -->
+        <section id="new-chat" class="view" style="display:none;">
+          <h3>Start New Chat</h3>
+          <p style="color:var(--muted)">Start a new conversation with a professional. Choose a professional and write a short message.</p>
+
+          <div style="margin-top:12px">
+            <label style="display:block;margin-bottom:8px;font-weight:600">Choose Professional</label>
+            <select id="newChatProfessional" style="padding:10px;border-radius:8px;border:1px solid var(--soft-border);width:100%;max-width:360px">
+              <!-- options inserted by JS -->
+            </select>
+            <label style="display:block;margin-top:12px;font-weight:600">Message</label>
+            <textarea id="newChatMessage" rows="6" style="width:100%;max-width:720px;padding:12px;border-radius:10px;border:1px solid var(--soft-border)"></textarea>
+            <div style="margin-top:12px">
+              <button class="btn primary" id="startChatBtn">Start Chat</button>
+            </div>
+          </div>
+        </section>
+
+      </div><!-- end views -->
+    </main>
+  </div>
+
+  <!-- ===== OVERLAYS & MODALS ===== -->
+
+  <!-- Book follow-up appointment modal (calendar + times) -->
+  <div id="bookOverlay" class="overlay" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true" aria-label="Book Follow-up Appointment">
+      <div class="modal-header">
+        <strong>Book Follow-up Appointment</strong>
+        <button onclick="closeBookModal()" style="background:transparent;border:none;font-size:18px;cursor:pointer">✕</button>
+      </div>
+      <div class="modal-body">
+        <p style="margin-top:0;color:var(--muted)">Schedule an appointment for the student</p>
+
+        <!-- calendar -->
+        <div style="display:flex;gap:20px;flex-wrap:wrap">
+          <div style="flex:1;min-width:260px">
+            <div class="calendar">
+              <div class="cal-header">
+                <button id="calPrev" class="btn" style="padding:6px 8px">◀</button>
+                <div id="calMonthYear" style="font-weight:700"></div>
+                <button id="calNext" class="btn" style="padding:6px 8px">▶</button>
+              </div>
+              <div class="cal-grid" id="calGridWeekdays" style="margin-bottom:8px;color:var(--muted);font-size:13px"></div>
+              <div class="cal-grid" id="calGridDays"></div>
+            </div>
+          </div>
+
+          <!-- times -->
+          <div style="flex:1;min-width:220px">
+            <label style="font-weight:700">Select Time</label>
+            <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:10px" id="timeSlots">
+              <!-- time buttons injected -->
+            </div>
+
+            <div style="margin-top:12px">
+              <button class="btn primary" id="confirmBookBtn">Confirm Appointment</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- End chat confirmation overlay -->
+  <div id="endOverlay" class="overlay" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true" aria-label="End Chat Session">
+      <div class="modal-header">
+        <strong>End Chat Session?</strong>
+        <button onclick="closeEndModal()" style="background:transparent;border:none;font-size:18px;cursor:pointer">✕</button>
+      </div>
+      <div class="modal-body">
+        <p>Are you sure you want to end this chat session? You can view the conversation history later.</p>
+        <div style="display:flex;gap:12px;margin-top:12px;justify-content:flex-end">
+          <button class="btn" onclick="closeEndModal()">Continue Chat</button>
+          <button class="btn primary" id="confirmEndBtn">End Session</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Conversation modal for viewing past chats -->
+  <div id="convOverlay" class="overlay" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true" aria-label="Conversation">
+      <div class="modal-header">
+        <strong id="convTitle">Conversation</strong>
+        <button onclick="closeConvModal()" style="background:transparent;border:none;font-size:18px;cursor:pointer">✕</button>
+      </div>
+      <div class="modal-body" id="convBody" style="padding-top:8px;">
+        <!-- messages inserted here via JS -->
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== SAMPLE DATA + APP LOGIC ===== -->
+  <script>
+    /*****************************************************************************
+     * NOTE:
+     * - This file is a single-page app (all views inside one HTML).
+     * - Replace the sample data with real server-side values (JSP/Servlet) later.
+     * - Keep the element IDs intact if you want to hook server updates.
+     *****************************************************************************/
+
+    // ---- sample data resembling prototypes (replaceable) ----
+    const professionals = [
+      { id: 1, initials: 'SJ', name: 'Dr. Sarah Johnson', role: 'Clinical Psychologist', online: true },
+      { id: 2, initials: 'MC', name: 'Dr. Michael Chen', role: 'Psychiatrist', online: true },
+      { id: 3, initials: 'EW', name: 'Dr. Emily Williams', role: 'Licensed Therapist', online: false },
+    ];
+
+    // sample chat history and active chats
+    const chats = {
+      // chatId: { professionalId, messages: [{from:'them'|'me',text,ts}], active:boolean }
+      101: {
+        id: 101,
+        professionalId: 2,
+        active: true,
+        messages: [
+          {from:'them', text:"Hello! I'm Dr. Michael Chen. How can I help you today?", ts:'8:05 PM'},
+          {from:'me', text:"I'm feeling so down", ts:'8:10 PM'},
+          {from:'them', text:"I understand how you're feeling. Can you tell me more about that?", ts:'8:10 PM'}
+        ],
+        started: 'Nov 7, 2025, 8:05 PM'
+      },
+      102: {
+        id: 102,
+        professionalId: 1,
+        active: false,
+        messages: [
+          {from:'me', text:"Hello, I would like to discuss some anxiety.", ts:'10:30 AM'},
+          {from:'them', text:"Hello! I'm here to help. Can you tell me more?", ts:'10:31 AM'},
+          {from:'me', text:"It started about two weeks ago.", ts:'10:32 AM'},
+          {from:'them', text:"Let's explore some coping strategies together.", ts:'10:33 AM'},
+        ],
+        started: 'Nov 5, 2025, 10:30 AM',
+        status: 'Ended'
+      }
+    };
+
+    // "currently open chat" pointer
+    let activeChatId = null;
+
+    // selected calendar state for booking modal
+    let calState = { year: null, month: null, selectedDate: null };
+
+    // selected time slot for booking modal (string like "14:00")
+    let selectedTimeSlot = null;
+
+    // On page load: render lists
+    document.addEventListener('DOMContentLoaded', () => {
+      renderProfessionals();
+      renderActiveChats();
+      renderHistory();
+      populateNewChatSelect();
+
+      // Top tab clicks — use delegation
+      document.getElementById('topTabs').addEventListener('click', e => {
+        const btn = e.target.closest('.tab-btn');
+        if (!btn) return;
+        const view = btn.dataset.view;
+        if (!view) return;
+        switchView(view);
+        // update active class for tabs
+        document.querySelectorAll('#topTabs .tab-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+      });
+
+      // book modal: wire prev/next
+      document.getElementById('calPrev').addEventListener('click', () => { changeCalMonth(-1); });
+      document.getElementById('calNext').addEventListener('click', () => { changeCalMonth(1); });
+      document.getElementById('confirmBookBtn').addEventListener('click', confirmBooking);
+
+      // send message
+      document.getElementById('sendBtn').addEventListener('click', sendMessageFromInput);
+
+      // start new chat
+      document.getElementById('startChatBtn').addEventListener('click', handleStartNewChat);
+
+      // end chat confirm
+      document.getElementById('confirmEndBtn').addEventListener('click', finalizeEndChat);
+
+      // attempt to fetch a navigation fragment (safe)
+      fetch('navigation.html').then(r => r.ok ? r.text() : Promise.reject('nav not found'))
+        .then(html => {
+          // if you want to replace sidebar with your navigation fragment, uncomment:
+          // document.getElementById('sidebar').innerHTML = html;
+        }).catch(()=>{ /* ignore quietly (safe) */ });
+
+      // initialize calendar to current month
+      const now = new Date();
+      calState.year = now.getFullYear();
+      calState.month = now.getMonth();
+      calState.selectedDate = null;
+      renderCalendar();
+    });
+
+    /* ---------------- render professionals (main-list) ---------------- */
+    function renderProfessionals() {
+      const grid = document.getElementById('proGrid');
+      grid.innerHTML = '';
+      professionals.forEach(pro => {
+        const div = document.createElement('div');
+        div.className = 'card';
+        div.innerHTML = `
+          <div class="avatar ${pro.initials ? 'blue' : ''}">${pro.initials}</div>
+          <div style="flex:1">
+            <div style="display:flex;align-items:center;justify-content:space-between;">
+              <div style="flex:1">
+                <div class="prof-info"><h4>${pro.name} <span style="font-weight:600;color:${pro.online ? '#059669' : '#9b9aa0'}; font-size:13px;margin-left:8px">${pro.online ? '● Online' : '● Offline'}</span></h4>
+                <p>${pro.role}</p></div>
+              </div>
+            </div>
+            <div class="action-row">
+              <button class="btn ${pro.online ? 'primary' : 'gray'}" ${pro.online ? '' : 'disabled'} data-action="start-chat" data-proid="${pro.id}">
+                <span>${pro.online ? '💬 Start Chat' : '💬 Offline'}</span>
+              </button>
+            </div>
+          </div>
+        `;
+        grid.appendChild(div);
+      });
+
+      // attach start-chat buttons
+      grid.querySelectorAll('[data-action="start-chat"]').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          const pid = Number(btn.dataset.proid);
+          // create a new chat (simple) and open chat screen
+          const newId = Math.max(...Object.keys(chats).map(Number)) + 1;
+          chats[newId] = { id:newId, professionalId: pid, active:true, messages:[], started: new Date().toLocaleString() };
+          renderActiveChats();
+          openChat(newId);
+          switchView('chat-screen');
+        });
+      });
+    }
+
+    /* ---------------- render active chats list (left pane of chat-screen) ---------------- */
+    function renderActiveChats() {
+      const list = document.getElementById('activeChatsList');
+      list.innerHTML = '';
+      const active = Object.values(chats).filter(c => c.active);
+      active.forEach(c => {
+        const pro = professionals.find(p=>p.id===c.professionalId) || { initials:'??', name:'Unknown', role:'' };
+        const el = document.createElement('div');
+        el.className = 'chat-list-item' + (activeChatId===c.id ? ' active' : '');
+        el.innerHTML = `
+          <div style="width:44px;height:44px;border-radius:8px;background:linear-gradient(135deg,#2563eb,#7c3aed);display:flex;align-items:center;justify-content:center;color:#fff">${pro.initials}</div>
+          <div style="flex:1">
+            <div style="font-weight:700">${pro.name}</div>
+            <div style="color:var(--muted);font-size:13px">${pro.role}<div style="display:inline-block;margin-left:8px;font-size:12px;color:var(--muted)">${c.started}</div></div>
+          </div>
+          <div><span class="badge">Active</span></div>
+        `;
+        el.addEventListener('click', () => { openChat(c.id); });
+        list.appendChild(el);
+      });
+
+      // if there are no active chats, show placeholder
+      if (active.length===0) {
+        list.innerHTML = '<div style="color:var(--muted)">No active chats</div>';
+      }
+    }
+
+    /* ---------------- open a chat by id -> populates chat panel ---------------- */
+    function openChat(chatId) {
+      activeChatId = chatId;
+      const chat = chats[chatId];
+      if (!chat) return;
+      // update header hero
+      const pro = professionals.find(p=>p.id===chat.professionalId);
+      document.getElementById('chatHeroAvatar').textContent = pro?.initials || '??';
+      document.getElementById('chatHeroName').textContent = pro?.name || 'Unknown';
+      document.getElementById('chatHeroRole').textContent = pro?.role || '';
+      // populate messages
+      const box = document.getElementById('chatMessages');
+      box.innerHTML = '';
+      chat.messages.forEach(m => {
+        const d = document.createElement('div');
+        d.className = 'msg ' + (m.from === 'me' ? 'me' : 'them');
+        d.innerHTML = `<div>${escapeHtml(m.text)}</div><div style="font-size:11px;color:var(--muted);margin-top:6px">${m.ts || ''}</div>`;
+        box.appendChild(d);
+      });
+      // scroll bottom
+      box.scrollTop = box.scrollHeight;
+
+      // attach book / end chat / notes handlers (id safe)
+      document.getElementById('bookBtn').onclick = () => openBookModal(chatId);
+      document.getElementById('endChatBtn').onclick = () => openEndModal(chatId);
+      document.getElementById('notesBtn').onclick = () => alert('Notes - stub (implement server notes view)');
+      // mark selection highlight
+      document.querySelectorAll('#activeChatsList .chat-list-item').forEach(el => el.classList.remove('active'));
+      Array.from(document.querySelectorAll('#activeChatsList .chat-list-item')).find(el => {
+        return el.querySelector('div > div > div') && el.querySelector('div > div > div').textContent.includes(pro?.name || '');
+      })?.classList.add('active');
+      // switch to chat screen view if not already
+      switchView('chat-screen');
+    }
+
+    /* send a message in the open chat */
+    function sendMessageFromInput(){
+      const input = document.getElementById('chatInput');
+      const txt = input.value.trim();
+      if(!txt || !activeChatId) return;
+      const ts = new Date().toLocaleTimeString([], {hour:'numeric',minute:'2-digit'});
+      chats[activeChatId].messages.push({from:'me',text:txt,ts});
+      input.value = '';
+      openChat(activeChatId); // re-render
+    }
+
+    /* ---------------- render chat history (past) ---------------- */
+    function renderHistory() {
+      const historyDiv = document.getElementById('historyList');
+      historyDiv.innerHTML = '';
+      const all = Object.values(chats).filter(c => !c.active);
+      if (all.length === 0) {
+        historyDiv.innerHTML = '<div style="color:var(--muted)">No past conversations</div>';
+        return;
+      }
+      all.forEach(c => {
+        const pro = professionals.find(p=>p.id===c.professionalId);
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.style.flexDirection = 'column';
+        card.style.padding = '16px';
+        card.innerHTML = `
+          <div style="display:flex;align-items:center;gap:12px">
+            <div class="avatar blue">${pro.initials}</div>
+            <div style="flex:1">
+              <div style="font-weight:700">${pro.name}</div>
+              <div style="color:var(--muted)">${pro.role}</div>
+              <div style="color:var(--muted);font-size:12px;margin-top:8px">${c.started}</div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <div style="padding:6px 10px;border-radius:8px;background:#f3f4f6;color:var(--muted)">Ended</div>
+            </div>
+          </div>
+          <div style="margin-top:12px;background:#f6f7f9;border-radius:8px;padding:12px;color:var(--muted)">${truncate(c.messages.map(m=>m.text).join(' '),120)}</div>
+          <div style="margin-top:10px;text-align:center">
+            <button class="btn" data-action="view-convo" data-chatid="${c.id}" style="padding:10px 16px;border:1px solid var(--soft-border)">View Conversation</button>
+          </div>
+        `;
+        historyDiv.appendChild(card);
+      });
+
+      // attach view handlers
+      historyDiv.querySelectorAll('[data-action="view-convo"]').forEach(b => {
+        b.addEventListener('click', () => {
+          const id = Number(b.dataset.chatid);
+          openConversationModal(id);
+        });
+      });
+    }
+
+    /* ---------------- Start New Chat flow ---------------- */
+    function populateNewChatSelect(){
+      const sel = document.getElementById('newChatProfessional');
+      sel.innerHTML = '';
+      professionals.forEach(p=> {
+        const opt = document.createElement('option');
+        opt.value = p.id;
+        opt.textContent = p.name + ' — ' + p.role + (p.online ? ' (online)' : ' (offline)');
+        sel.appendChild(opt);
+      });
+    }
+    function handleStartNewChat(){
+      const pid = Number(document.getElementById('newChatProfessional').value);
+      const msg = document.getElementById('newChatMessage').value.trim();
+      if(!pid) { alert('Choose a professional'); return; }
+      // create chat
+      const newId = Math.max(...Object.keys(chats).map(Number)) + 1;
+      const now = new Date();
+      chats[newId] = { id:newId, professionalId:pid, active:true, messages:[], started: now.toLocaleString() };
+      if(msg) chats[newId].messages.push({from:'me', text: msg, ts: now.toLocaleTimeString([], {hour:'numeric',minute:'2-digit'})});
+      // open
+      renderActiveChats();
+      openChat(newId);
+      // clear form
+      document.getElementById('newChatMessage').value = '';
+      switchView('chat-screen');
+    }
+
+    /* ---------------- Conversation modal (history) ---------------- */
+    function openConversationModal(chatId) {
+      const c = chats[chatId];
+      if(!c) return;
+      const pro = professionals.find(p=>p.id===c.professionalId);
+      document.getElementById('convTitle').textContent = `Conversation with ${pro?.name || ''}`;
+      const body = document.getElementById('convBody');
+      body.innerHTML = '';
+      c.messages.forEach(m => {
+        const el = document.createElement('div');
+        el.style.marginBottom = '10px';
+        el.innerHTML = `<div class="msg ${m.from==='me' ? 'me' : 'them'}">${escapeHtml(m.text)}</div><div style="font-size:11px;color:var(--muted);margin:6px 0">${m.ts || ''}</div>`;
+        body.appendChild(el);
+      });
+      document.getElementById('convOverlay').classList.add('active');
+    }
+    function closeConvModal(){ document.getElementById('convOverlay').classList.remove('active'); }
+
+    /* ---------------- Book modal (calendar + times) ---------------- */
+    function openBookModal(chatId) {
+      // we can show professional name if desired
+      document.getElementById('bookOverlay').classList.add('active');
+      document.getElementById('bookOverlay').setAttribute('data-chatid', chatId);
+      selectedTimeSlot = null;
+      // render time slots
+      renderTimeSlots(['09:00','10:00','11:00','14:00','15:00','16:00','17:00']);
+    }
+    function closeBookModal(){
+      document.getElementById('bookOverlay').classList.remove('active');
+    }
+
+    // calendar helpers
+    function renderCalendar(){
+      const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+      const month = calState.month, year = calState.year;
+      document.getElementById('calMonthYear').textContent = `${monthNames[month]} ${year}`;
+      // weekdays header
+      const weekdays = ['Su','Mo','Tu','We','Th','Fr','Sa'];
+      const wk = document.getElementById('calGridWeekdays');
+      wk.innerHTML = '';
+      weekdays.forEach(d => { const el = document.createElement('div'); el.style.textAlign='center'; el.textContent = d; wk.appendChild(el); });
+
+      // days
+      const daysGrid = document.getElementById('calGridDays');
+      daysGrid.innerHTML = '';
+      const first = new Date(year, month, 1);
+      const last = new Date(year, month+1, 0);
+      const startDay = first.getDay();
+      const totalDays = last.getDate();
+
+      // fill blank days before
+      for (let i=0;i<startDay;i++){
+        const el = document.createElement('div'); el.className='cal-day other'; el.textContent=''; daysGrid.appendChild(el);
+      }
+      // fill days
+      const today = new Date();
+      for (let d=1; d<= totalDays; d++){
+        const el = document.createElement('div');
+        el.className = 'cal-day';
+        const date = new Date(year, month, d);
+        if (date.toDateString() === today.toDateString()) el.classList.add('today');
+        if (calState.selectedDate && sameDate(calState.selectedDate, date)) el.classList.add('selected');
+        el.textContent = d;
+        el.addEventListener('click', () => { calState.selectedDate = date; renderCalendar(); });
+        daysGrid.appendChild(el);
+      }
+    }
+
+    function changeCalMonth(delta){
+      calState.month += delta;
+      if (calState.month < 0) { calState.month = 11; calState.year -=1; }
+      if (calState.month > 11) { calState.month = 0; calState.year +=1; }
+      renderCalendar();
+    }
+
+    // render time slot buttons
+    function renderTimeSlots(arr){
+      const container = document.getElementById('timeSlots');
+      container.innerHTML = '';
+      arr.forEach(t => {
+        const btn = document.createElement('button');
+        btn.className = 'btn';
+        btn.textContent = prettyTime(t);
+        btn.style.border = '1px solid var(--soft-border)';
+        btn.style.background = '#fff';
+        btn.addEventListener('click', () => {
+          selectedTimeSlot = t;
+          // highlight selection
+          container.querySelectorAll('button').forEach(b => b.style.background = '#fff');
+          btn.style.background = '#05020a';
+          btn.style.color = '#fff';
+        });
+        container.appendChild(btn);
+      });
+    }
+
+    function confirmBooking(){
+      if(!calState.selectedDate){ alert('Select a date from the calendar'); return; }
+      if(!selectedTimeSlot){ alert('Select a time slot'); return; }
+      const chatId = Number(document.getElementById('bookOverlay').dataset.chatid);
+      // In reality you would post to server; here we'll just show a success and close
+      alert(`Appointment booked!\nChat: ${chatId}\nDate: ${calState.selectedDate.toDateString()}\nTime: ${prettyTime(selectedTimeSlot)}`);
+      closeBookModal();
+    }
+
+    /* ---------------- End chat flow ---------------- */
+    function openEndModal(chatId){
+      document.getElementById('endOverlay').classList.add('active');
+      document.getElementById('endOverlay').dataset.chatid = chatId;
+    }
+    function closeEndModal(){ document.getElementById('endOverlay').classList.remove('active'); }
+    function finalizeEndChat(){
+      const id = Number(document.getElementById('endOverlay').dataset.chatid);
+      if (!chats[id]) { closeEndModal(); return; }
+      chats[id].active = false;
+      // set status label
+      chats[id].status = 'Ended';
+      renderActiveChats();
+      renderHistory();
+      closeEndModal();
+      // after ending, show sent confirmation and switch to history view (like screenshot sequence)
+      switchView('main-list');
+      // optional toast
+      alert('Chat session ended. You can view it under Chat History.');
+    }
+
+    /* ---------------- utility: switch main views ---------------- */
+    function switchView(viewId) {
+      document.querySelectorAll('#views .view').forEach(v => { v.style.display = 'none'; v.setAttribute('aria-hidden','true'); });
+      const el = document.getElementById(viewId);
+      if (el) { el.style.display = ''; el.setAttribute('aria-hidden','false'); }
+      // ensure chat-panel is updated if switching to chat screen with an active chat
+      if (viewId === 'chat-screen' && activeChatId) openChat(activeChatId);
+    }
+
+    /* ---------------- helpers ---------------- */
+    function sameDate(a,b){ return a.getFullYear()===b.getFullYear() && a.getMonth()===b.getMonth() && a.getDate()===b.getDate(); }
+    function prettyTime(hhmm){ // convert '14:00' -> '2:00 PM'
+      const [h,m] = hhmm.split(':').map(Number);
+      const d = new Date(); d.setHours(h); d.setMinutes(m);
+      return d.toLocaleTimeString([], {hour:'numeric', minute:'2-digit'});
+    }
+    function truncate(str, n){
+      return str.length>n ? str.slice(0,n-1)+'…' : str;
+    }
+    function escapeHtml(s){
+      return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
+    }
+
+    /* ---------------- small defensive UX touches: clicking overlay closes modals (except modal inner click) ---------------- */
+    document.querySelectorAll('.overlay').forEach(overlay => {
+      overlay.addEventListener('click', (e) => {
+        if (e.target === overlay) {
+          overlay.classList.remove('active');
+        }
+      });
+    });
+
+    /* ---------------- SAFE: debug helpers - make it easy for you to inspect chat state in console ---------------- */
+    window.__SOULSPACE = { professionals, chats, renderProfessionals, renderActiveChats, renderHistory, openChat };
+  </script>
+</body>
+</html>
