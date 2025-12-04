@@ -197,7 +197,6 @@
     </main>
 
     <script>
-        // --- 1. DATA SOURCE (Mock Database) ---
         const currentUser = "You";
         let activeChatId = null;
 
@@ -267,23 +266,24 @@
                 const lastMsg = convo.messages[convo.messages.length - 1];
                 const isActive = convo.id === activeChatId ? 'active' : '';
                 const isUnread = convo.unread > 0 ? 'unread' : '';
-                const badgeHTML = convo.unread > 0 ? `<span class="unread-badge">${convo.unread}</span>` : '';
-                const onlineHTML = convo.online ? `<span class="online-indicator visible"></span>` : '';
+                const badgeHTML = convo.unread > 0 ? `\n<span class="unread-badge">\${convo.unread}</span>` : '';
+                const onlineHTML = convo.online ? `\n<span class="online-indicator visible"></span>` : '';
 
+                // Note: Escaped \${} to prevent JSP trying to parse them
                 const html = `
-                    <div class="conversation-item ${isActive} ${isUnread}" onclick="loadChat(${convo.id})">
-                        <div class="conversation-avatar" style="background: ${convo.color}">
-                            ${convo.avatar}
-                            ${onlineHTML}
+                    <div class="conversation-item \${isActive} \${isUnread}" onclick="loadChat(\${convo.id})">
+                        <div class="conversation-avatar" style="background: \${convo.color}">
+                            \${convo.avatar}
+                            \${onlineHTML}
                         </div>
                         <div class="conversation-details">
                             <div class="conversation-header">
-                                <span class="conversation-name">${convo.name}</span>
-                                <span class="conversation-time">${lastMsg.time}</span>
+                                <span class="conversation-name">\${convo.name}</span>
+                                <span class="conversation-time">\${lastMsg.time}</span>
                             </div>
-                            <p class="conversation-preview">${lastMsg.text}</p>
+                            <p class="conversation-preview">\${lastMsg.text}</p>
                         </div>
-                        ${badgeHTML}
+                        \${badgeHTML}
                     </div>
                 `;
                 container.innerHTML += html;
@@ -319,11 +319,11 @@
                 const bg = msg.type === 'sent' ? '#2563eb' : convo.color;
                 
                 const html = `
-                    <div class="message ${msg.type}">
-                        <div class="message-avatar-small" style="background: ${bg}">${avatar}</div>
+                    <div class="message \${msg.type}">
+                        <div class="message-avatar-small" style="background: \${bg}">\${avatar}</div>
                         <div class="message-content">
-                            <div class="message-bubble">${msg.text}</div>
-                            <div class="message-time">${msg.time}</div>
+                            <div class="message-bubble">\${msg.text}</div>
+                            <div class="message-time">\${msg.time}</div>
                         </div>
                     </div>
                 `;
@@ -391,7 +391,7 @@
             document.getElementById('sidebarList').classList.remove('hidden');
             document.getElementById('chatWindow').classList.remove('active');
             activeChatId = null; // Optional: deselect chat
-            document.getElementById('chatWindow').style.display = 'none'; // Hide on desktop too if desired, or keep open
+            document.getElementById('chatWindow').style.display = 'none'; // Hide on desktop too if desired
             document.getElementById('emptyState').style.display = 'none'; // Keep hidden on mobile
             if(window.innerWidth > 768) document.getElementById('emptyState').style.display = 'flex';
         }

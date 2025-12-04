@@ -8,7 +8,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SoulSpace - Booking</title>
     <style>
-        /* --- LAYOUT RESET --- */
+        /* --- GLOBAL RESET --- */
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { 
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -17,9 +17,9 @@
             min-height: 100vh;
         }
 
-        /* --- MAIN CONTENT WRAPPER (Required for Sidebar) --- */
+        /* --- MAIN CONTENT WRAPPER --- */
         .main-content {
-            margin-left: 16rem; /* Fits the navigation.jsp sidebar */
+            margin-left: 16rem; /* Width of the sidebar */
             min-height: 100vh;
             display: flex;
             flex-direction: column;
@@ -33,7 +33,7 @@
         .container { padding: 1rem; max-width: 80rem; margin: 0 auto; width: 100%; }
         @media (min-width: 1024px) { .container { padding: 2rem; } }
 
-        /* --- PAGE STYLES (Your Original Design) --- */
+        /* --- PAGE STYLES --- */
         .page-header { padding-top: 1rem; margin-bottom: 1.5rem; }
         .page-header h1 { font-size: 1.875rem; font-weight: 500; color: #1a1a1a; margin-bottom: 0.25rem; }
         .page-header p { color: #6b7280; }
@@ -320,10 +320,10 @@
                 <h2>Book Appointment</h2>
                 <p id="modalProfessionalName">Select date and time</p>
             </div>
-            <form id="bookingForm" onsubmit="submitBooking(event)">
+            <form id="bookingForm" action="booking" method="post">
                 <div class="form-group">
                     <label class="form-label" for="appointmentDate">Select Date</label>
-                    <input type="date" id="appointmentDate" class="form-input" required>
+                    <input type="date" id="appointmentDate" name="date" class="form-input" required>
                 </div>
                 <div class="form-group">
                     <label class="form-label">Select Time</label>
@@ -335,11 +335,11 @@
                         <div class="time-slot" onclick="selectTime(this, '15:00')">3:00 PM</div>
                         <div class="time-slot" onclick="selectTime(this, '16:00')">4:00 PM</div>
                     </div>
-                    <input type="hidden" id="selectedTime" required>
+                    <input type="hidden" id="selectedTime" name="time" required>
                 </div>
                 <div class="form-group">
                     <label class="form-label" for="sessionType">Session Type</label>
-                    <select id="sessionType" class="form-select" required>
+                    <select id="sessionType" name="type" class="form-select" required>
                         <option value="">Choose session type</option>
                         <option value="video">Video Call</option>
                         <option value="in-person">In-Person</option>
@@ -392,11 +392,7 @@
             el.classList.add('selected');
             document.getElementById('selectedTime').value = time;
         }
-        function submitBooking(e) {
-            e.preventDefault();
-            alert('Booking confirmed!');
-            closeBookingModal();
-        }
+        // No submit override here, let the form submit normally to Servlet
 
         function reschedule(id) {
             openBookingModal(id, "Dr. Sarah Johnson"); // Mock logic

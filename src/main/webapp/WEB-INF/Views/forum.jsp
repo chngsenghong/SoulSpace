@@ -125,6 +125,10 @@
         /* Mobile Toggle (from your other files) */
         .mobile-menu-btn { display: none; margin-right: 1rem; background: none; border: none; cursor: pointer; }
         @media (max-width: 1024px) { .mobile-menu-btn { display: block; } }
+        .card-actions { display: flex; gap: 0.5rem; margin-left: auto; }
+        .action-icon-btn { background: none; border: none; cursor: pointer; color: #9ca3af; padding: 0.25rem; transition: color 0.2s; }
+        .action-icon-btn:hover { color: #2563eb; }
+        .action-icon-btn.delete:hover { color: #ef4444; }
     </style>
 </head>
 <body>
@@ -134,190 +138,147 @@
     <main class="main-content">
         <div class="container">
             
-            <div style="display: flex; align-items: center; margin-bottom: 1rem; @media(min-width: 1024px){display:none;}">
-                <button class="mobile-menu-btn" onclick="openSidebar()">
-                     <svg style="width:24px;height:24px" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
-                    </svg>
-                </button>
-                <h2 style="font-size: 1.25rem;">Community Forum</h2>
-            </div>
-
             <div class="page-header">
                 <div class="page-header-left">
                     <h1>Community Forum</h1>
                     <p>Connect, share, and support each other</p>
                 </div>
-                <button class="btn-primary" onclick="openNewPostModal()">
-                    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
-                    </svg>
+                <button class="btn-primary" onclick="openModal('create')">
+                    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" /></svg>
                     New Post
                 </button>
             </div>
 
-            <div class="guidelines-banner">
-                <div class="guidelines-icon">
-                    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                </div>
-                <div class="guidelines-content">
-                    <h4>Community Guidelines</h4>
-                    <p>Be respectful, supportive, and kind. <span class="guidelines-link" onclick="showGuidelines()">Read full guidelines</span></p>
-                </div>
-            </div>
-
-            <div class="search-section">
-                <input type="text" class="search-input" placeholder="Search discussions...">
-                <select class="filter-select">
-                    <option>Latest Posts</option>
-                    <option>Most Replies</option>
-                    <option>Most Helpful</option>
-                    <option>Trending</option>
-                </select>
-            </div>
-
-            <div class="category-tabs">
-                <button class="category-tab active" onclick="filterByCategory('all')">All Topics</button>
-                <button class="category-tab" onclick="filterByCategory('anxiety')">Anxiety & Stress</button>
-                <button class="category-tab" onclick="filterByCategory('depression')">Depression</button>
-                <button class="category-tab" onclick="filterByCategory('relationships')">Relationships</button>
-                <button class="category-tab" onclick="filterByCategory('selfcare')">Self-Care</button>
-                <button class="category-tab" onclick="filterByCategory('success')">Success Stories</button>
-            </div>
-
             <div class="forum-list">
-                
                 <c:forEach var="post" items="${forumPosts}">
-                    <div class="forum-post ${post.pinned ? 'pinned' : ''}" onclick="window.location.href='${pageContext.request.contextPath}/forum/post?id=${post.id}'">
+                    <div class="forum-post ${post.pinned ? 'pinned' : ''}">
+                        
                         <div class="post-header">
-                            <div class="post-avatar" style="background: ${post.authorColor};">
-                                ${post.authorInitials}
-                            </div>
+                            <div class="post-avatar" style="background: ${post.authorColor};">${post.authorInitials}</div>
                             <div class="post-header-content">
                                 <div class="post-author">
                                     <span class="post-author-name">${post.authorName}</span>
-                                    <c:if test="${post.pinned}">
-                                        <span class="post-badge">Moderator</span>
-                                    </c:if>
+                                    <c:if test="${post.pinned}"><span class="post-badge">Moderator</span></c:if>
                                 </div>
                                 <div class="post-meta">
-                                    <span class="post-meta-item">
-                                        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                                        ${post.timeAgo}
-                                    </span>
+                                    <span class="post-meta-item">${post.timeAgo}</span>
                                 </div>
                             </div>
+                            
+                            <div class="card-actions">
+                                <button class="action-icon-btn" title="Edit" onclick="openModal('edit', ${post.id}, '${post.title}', '${post.category}', '${post.excerpt}')">
+                                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                                </button>
+                                
+                                <form action="forum" method="post" style="display:inline;" onsubmit="return confirm('Delete this post?');">
+                                    <input type="hidden" name="action" value="delete">
+                                    <input type="hidden" name="id" value="${post.id}">
+                                    <button type="submit" class="action-icon-btn delete" title="Delete">
+                                        <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                    </button>
+                                </form>
+                            </div>
                         </div>
-                        <div class="post-content">
+
+                        <div class="post-content" onclick="window.location.href='${pageContext.request.contextPath}/forum/post?id=${post.id}'" style="cursor: pointer;">
                             <h3>${post.title}</h3>
                             <p class="post-excerpt">${post.excerpt}</p>
                             <div class="post-tags">
-                                <c:forEach var="tag" items="${post.tags}">
-                                    <span class="post-tag">${tag}</span>
-                                </c:forEach>
+                                <c:forEach var="tag" items="${post.tags}"><span class="post-tag">${tag}</span></c:forEach>
                             </div>
                         </div>
+
                         <div class="post-footer">
-                            <div class="post-stats">
-                                <span class="post-stat">
-                                    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>
-                                    ${post.replies} replies
-                                </span>
-                                <span class="post-stat">
-                                    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
-                                    ${post.views} views
-                                </span>
-                            </div>
-                            <div class="post-actions">
-                                <button class="post-action-btn" onclick="likePost(event, ${post.id})" title="Like">
-                                    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5" /></svg>
-                                </button>
-                                <button class="post-action-btn" onclick="bookmarkPost(event, ${post.id})" title="Bookmark">
-                                    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" /></svg>
-                                </button>
-                            </div>
-                        </div>
+                             </div>
                     </div>
                 </c:forEach>
             </div>
         </div>
     </main>
 
-    <div class="modal" id="newPostModal">
+    <div class="modal" id="postModal">
         <div class="modal-content">
             <div class="modal-header">
-                <h2>Create New Post</h2>
-                <p>Share your thoughts, ask questions, or start a discussion</p>
+                <h2 id="modalTitle">Create New Post</h2>
             </div>
-            <form id="newPostForm" onsubmit="submitPost(event)">
+            <form action="forum" method="post">
+                <input type="hidden" name="action" id="formAction" value="create">
+                <input type="hidden" name="id" id="postId" value="">
+
                 <div class="form-group">
-                    <label class="form-label" for="postTitle">Title</label>
-                    <input type="text" id="postTitle" class="form-input" placeholder="Give your post a clear title" required>
+                    <label class="form-label">Title</label>
+                    <input type="text" name="title" id="inputTitle" class="form-input" required>
                 </div>
                 <div class="form-group">
-                    <label class="form-label" for="postCategory">Category</label>
-                    <select id="postCategory" class="filter-select" style="width: 100%;" required>
-                        <option value="">Select a category</option>
-                        <option value="anxiety">Anxiety & Stress</option>
-                        <option value="depression">Depression</option>
-                        <option value="relationships">Relationships</option>
-                        <option value="selfcare">Self-Care</option>
-                        <option value="success">Success Stories</option>
-                        <option value="general">General Discussion</option>
+                    <label class="form-label">Category</label>
+                    <select name="category" id="inputCategory" class="filter-select" style="width: 100%;" required>
+                        <option value="General">General</option>
+                        <option value="Anxiety">Anxiety & Stress</option>
+                        <option value="Depression">Depression</option>
+                        <option value="Self-Care">Self-Care</option>
                     </select>
                 </div>
                 <div class="form-group">
-                    <label class="form-label" for="postContent">Content</label>
-                    <textarea id="postContent" class="form-textarea" placeholder="Share your thoughts..." required></textarea>
+                    <label class="form-label">Content</label>
+                    <textarea name="content" id="inputContent" class="form-textarea" required></textarea>
                 </div>
+                <div class="form-group" id="tagsGroup">
+                    <label class="form-label">Tags (comma separated)</label>
+                    <input type="text" name="tags" class="form-input" placeholder="e.g. stress, help">
+                </div>
+                
                 <div class="modal-actions">
-                    <button type="button" class="btn-outline" onclick="closeNewPostModal()">Cancel</button>
-                    <button type="submit" class="btn-primary">Post</button>
+                    <button type="button" class="btn-outline" onclick="closeModal()">Cancel</button>
+                    <button type="submit" class="btn-primary" id="submitBtn">Post</button>
                 </div>
             </form>
         </div>
     </div>
 
     <script>
-        function openNewPostModal() { document.getElementById('newPostModal').classList.add('active'); }
-        function closeNewPostModal() { document.getElementById('newPostModal').classList.remove('active'); document.getElementById('newPostForm').reset(); }
-        
-        function submitPost(event) {
-            event.preventDefault();
-            // Here you would typically use fetch() to send data to a Servlet
-            alert('This would send data to the backend!');
-            closeNewPostModal();
+        function openModal(mode, id, title, category, content) {
+            const modal = document.getElementById('postModal');
+            const formAction = document.getElementById('formAction');
+            
+            if (mode === 'edit') {
+                // Set Modal for Editing
+                document.getElementById('modalTitle').innerText = 'Edit Post';
+                document.getElementById('submitBtn').innerText = 'Update';
+                formAction.value = 'update';
+                
+                // Fill data
+                document.getElementById('postId').value = id;
+                document.getElementById('inputTitle').value = title;
+                document.getElementById('inputCategory').value = category;
+                document.getElementById('inputContent').value = content;
+                
+                // Hide tags for edit (optional simplification)
+                document.getElementById('tagsGroup').style.display = 'none';
+            } else {
+                // Set Modal for Creating
+                document.getElementById('modalTitle').innerText = 'Create New Post';
+                document.getElementById('submitBtn').innerText = 'Post';
+                formAction.value = 'create';
+                
+                // Clear data
+                document.getElementById('postId').value = '';
+                document.getElementById('inputTitle').value = '';
+                document.getElementById('inputCategory').value = 'General';
+                document.getElementById('inputContent').value = '';
+                document.getElementById('tagsGroup').style.display = 'block';
+            }
+            
+            modal.classList.add('active');
         }
 
-        function viewPost(id) {
-            alert('Navigating to post ID: ' + id);
-            // window.location.href = '${pageContext.request.contextPath}/forum/post?id=' + id;
+        function closeModal() {
+            document.getElementById('postModal').classList.remove('active');
         }
 
-        function filterByCategory(category) {
-            document.querySelectorAll('.category-tab').forEach(tab => tab.classList.remove('active'));
-            event.target.classList.add('active');
-            console.log('Filter by: ' + category);
+        // Close on outside click
+        window.onclick = function(e) {
+            if (e.target.classList.contains('modal')) closeModal();
         }
-
-        function likePost(event, id) {
-            event.stopPropagation();
-            event.currentTarget.classList.toggle('active');
-            // AJAX call to like servlet
-        }
-
-        function bookmarkPost(event, id) {
-            event.stopPropagation();
-            event.currentTarget.classList.toggle('active');
-        }
-
-        function showGuidelines() {
-            alert('Community Guidelines:\n\n1. Be respectful and kind\n2. No hate speech\n3. Protect privacy');
-        }
-
-        document.getElementById('newPostModal').addEventListener('click', function(e) {
-            if (e.target === this) closeNewPostModal();
-        });
     </script>
 </body>
 </html>

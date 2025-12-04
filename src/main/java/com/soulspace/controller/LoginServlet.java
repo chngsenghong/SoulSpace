@@ -11,21 +11,11 @@ import jakarta.servlet.http.HttpSession;
 
 @WebServlet("/login")
 public class LoginServlet extends HttpServlet {
-    private static final long serialVersionUID = 1L;
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) 
             throws ServletException, IOException {
-        
-        // 1. Check if user is ALREADY logged in
-        HttpSession session = request.getSession(false);
-        if (session != null && session.getAttribute("user") != null) {
-            // If yes, send them to the Dashboard Servlet (NOT the JSP)
-            response.sendRedirect("dashboard");
-        } else {
-            // If no, show the Login Page (Server can access WEB-INF)
-            request.getRequestDispatcher("/WEB-INF/views/login.jsp").forward(request, response);
-        }
+        request.getRequestDispatcher("/WEB-INF/views/login.jsp").forward(request, response);
     }
 
     @Override
@@ -35,26 +25,33 @@ public class LoginServlet extends HttpServlet {
         String email = request.getParameter("email");
         String password = request.getParameter("password");
         
-        // --- VALIDATION ---
-        if (email != null && !email.isEmpty() && password != null && !password.isEmpty()) {
-            
-            // A. Login Success
+        if (email != null && !email.isEmpty()) {
             HttpSession session = request.getSession();
             
-            // Extract display name (e.g., "john" from "john@email.com")
-            String displayName = email.split("@")[0];
-            displayName = displayName.substring(0, 1).toUpperCase() + displayName.substring(1);
-            
+            // 1. Determine Role based on Email
+            String role = "STUDENT"; // Default
+            String displayName = "Student";
+
+            if (email.equalsIgnoreCase("professional@gmail.com")) {
+                role = "PROFESSIONAL";
+                displayName = "Dr. Sarah Johnson"; // Mock Name
+            } else if (email.equalsIgnoreCase("student@gmail.com")) {
+                role = "STUDENT";
+                displayName = "Student User";
+            } else {
+                // Generic fallback
+                displayName = email.split("@")[0];
+            }
+
+            // 2. Save to Session
             session.setAttribute("user", displayName);
             session.setAttribute("email", email);
+            session.setAttribute("role", role); // <--- IMPORTANT
             
-            // CRITICAL FIX: Redirect to the Servlet URL pattern, NOT the JSP file
             response.sendRedirect("dashboard");
             
         } else {
-            // B. Login Failed
-            request.setAttribute("errorMessage", "Invalid email or password");
-            // Forward back to the hidden login page so they can try again
+            request.setAttribute("errorMessage", "Invalid credentials");
             request.getRequestDispatcher("/WEB-INF/views/login.jsp").forward(request, response);
         }
     }
