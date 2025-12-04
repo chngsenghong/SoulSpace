@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.soulspace.model.Appointment;
 import com.soulspace.model.Assessment;
 import com.soulspace.model.Recommendation;
 
@@ -23,12 +22,6 @@ public class HomeServlet extends HttpServlet {
         // 1. User Info
         request.setAttribute("userName", "John Doe"); // Later from Session
 
-        // 2. Upcoming Appointment
-        request.setAttribute("appointment", new Appointment(
-            "Dr. Sarah Johnson", 
-            "Clinical Psychologist", 
-            "Nov 8, 2025 at 2:00 PM"
-        ));
 
         // 3. Latest Assessment
         request.setAttribute("assessment", new Assessment(
@@ -47,6 +40,6 @@ public class HomeServlet extends HttpServlet {
         request.setAttribute("recommendations", recs);
 
         // 5. Forward to View
-        request.getRequestDispatcher("/WEB-INF/views/home.jsp").forward(request, response);
+        request.getRequestDispatcher("/WEB-INF/views/dashboard.jsp").forward(request, response);
     }
 }

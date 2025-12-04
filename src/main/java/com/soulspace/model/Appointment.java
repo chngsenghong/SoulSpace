@@ -1,17 +1,30 @@
 package com.soulspace.model;
 
 public class Appointment {
-    private String doctorName;
-    private String doctorTitle;
+    private String id;
+    private String clientName;
+    private String professionalName;
     private String date;
+    private String time;
+    private String type; // Video, In-Person
+    private String status;
 
-    public Appointment(String doctorName, String doctorTitle, String date) {
-        this.doctorName = doctorName;
-        this.doctorTitle = doctorTitle;
+    public Appointment(String id, String clientName, String professionalName, String date, String time, String type) {
+        this.id = id;
+        this.clientName = clientName;
+        this.professionalName = professionalName;
         this.date = date;
+        this.time = time;
+        this.type = type;
+        this.status = "Confirmed";
     }
 
-    public String getDoctorName() { return doctorName; }
-    public String getDoctorTitle() { return doctorTitle; }
+    // Getters
+    public String getId() { return id; }
+    public String getClientName() { return clientName; }
+    public String getProfessionalName() { return professionalName; }
     public String getDate() { return date; }
+    public String getTime() { return time; }
+    public String getType() { return type; }
+    public String getStatus() { return status; }
 }

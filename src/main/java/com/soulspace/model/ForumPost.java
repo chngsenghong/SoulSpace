@@ -62,4 +62,7 @@ public class ForumPost {
     public void setBookmarked(boolean bookmarked) { isBookmarked = bookmarked; }
     public List<Comment> getComments() { return comments; }
     public void addComment(Comment comment) { this.comments.add(comment); }
+    public void setTitle(String title) { this.title = title; }
+    public void setCategory(String category) { this.category = category; }
+    public void setExcerpt(String excerpt) { this.excerpt = excerpt; }
 }
