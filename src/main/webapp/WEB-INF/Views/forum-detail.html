@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="'SoulSpace - ' + ${post.title}">SoulSpace - Post</title>
+    <style>
+        /* --- GLOBAL & LAYOUT --- */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f9fafb; color: #1a1a1a; min-height: 100vh; }
+        
+        .main-content { margin-left: 16rem; min-height: 100vh; padding: 2rem; transition: margin-left 0.3s ease; }
+        @media (max-width: 1024px) { .main-content { margin-left: 0; padding: 1.5rem; } }
+
+        .container { max-width: 48rem; margin: 0 auto; }
+
+        /* --- BACK LINK --- */
+        .back-link { display: inline-flex; align-items: center; gap: 0.5rem; text-decoration: none; color: #6b7280; font-weight: 500; margin-bottom: 2rem; transition: color 0.2s; }
+        .back-link:hover { color: #111827; }
+
+        /* --- POST CARD --- */
+        .post-card { background: white; border-radius: 1rem; border: 1px solid #e5e7eb; padding: 2rem; margin-bottom: 2rem; }
+        .post-header { display: flex; align-items: flex-start; gap: 1rem; margin-bottom: 1.5rem; }
+        .author-avatar { width: 3rem; height: 3rem; background: #eff6ff; color: #3b82f6; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1.125rem; flex-shrink: 0; }
+        
+        .post-meta h1 { font-size: 1.5rem; font-weight: 700; color: #111827; line-height: 1.3; margin-bottom: 0.25rem; }
+        .post-info { font-size: 0.875rem; color: #6b7280; }
+        
+        .post-body { font-size: 1.05rem; line-height: 1.7; color: #374151; margin-bottom: 1.5rem; white-space: pre-wrap; }
+        
+        .tags { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+        .tag { background: #f3f4f6; color: #4b5563; padding: 0.25rem 0.75rem; border-radius: 999px; font-size: 0.875rem; font-weight: 500; }
+
+        /* --- COMMENTS SECTION --- */
+        .comments-section { border-top: 1px solid #e5e7eb; padding-top: 2rem; }
+        .comments-header { font-size: 1.25rem; font-weight: 600; margin-bottom: 1.5rem; }
+        
+        .comment-item { display: flex; gap: 1rem; margin-bottom: 1.5rem; }
+        .comment-avatar { width: 2.5rem; height: 2.5rem; background: #ecfdf5; color: #059669; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 0.875rem; flex-shrink: 0; }
+        
+        .comment-box { background: #f9fafb; padding: 1rem 1.25rem; border-radius: 0.75rem; flex: 1; }
+        .comment-meta { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; }
+        .comment-author { font-weight: 600; font-size: 0.9rem; }
+        .comment-time { font-size: 0.75rem; color: #9ca3af; }
+        .comment-text { color: #4b5563; font-size: 0.95rem; line-height: 1.5; }
+    </style>
+</head>
+<body>
+    <div th:replace="~{navigation :: sidebar-fragment}"></div>
+
+    <main class="main-content">
+        <div class="container">
+            <a th:href="@{/forum}" class="back-link">
+                <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                Back to Forum
+            </a>
+
+            <div class="post-card">
+                <div class="post-header">
+                    <div class="author-avatar" th:text="${post.author.initials}">JD</div>
+                    <div class="post-meta">
+                        <h1 th:text="${post.title}">Post Title</h1>
+                        <div class="post-info">
+                            Posted by <span style="font-weight: 500; color: #1f2937;" th:text="${post.author.firstName} + ' ' + ${post.author.lastName}">Author</span> 
+                            • <span th:text="${post.timeAgo}">2h ago</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="post-body" th:text="${post.content}">
+                    Post content goes here...
+                </div>
+
+                <div class="tags">
+                    <span class="tag" th:each="tag : ${#strings.arraySplit(post.tags, ',')}" th:text="'#' + ${tag}">#tag</span>
+                </div>
+            </div>
+
+            <div class="comments-section">
+                <h3 class="comments-header" th:text="'Comments (' + ${#lists.size(post.comments)} + ')'">Comments (0)</h3>
+                
+                <th:block th:if="${not #lists.isEmpty(post.comments)}">
+                    <div class="comment-item" th:each="comment : ${post.comments}">
+                        <div class="comment-avatar" th:text="${comment.user.initials}">AB</div>
+                        <div class="comment-box">
+                            <div class="comment-meta">
+                                <span class="comment-author" th:text="${comment.user.firstName} + ' ' + ${comment.user.lastName}">User Name</span>
+                                <span class="comment-time" th:text="${comment.timeAgo}">1h ago</span>
+                            </div>
+                            <div class="comment-text" th:text="${comment.content}">Comment content...</div>
+                        </div>
+                    </div>
+                </th:block>
+
+                <th:block th:if="${#lists.isEmpty(post.comments)}">
+                    <p style="color: #6b7280; font-style: italic; text-align: center; padding: 2rem;">No comments yet. Be the first to share your thoughts!</p>
+                </th:block>
+            </div>
+        </div>
+    </main>
+</body>
+</html>

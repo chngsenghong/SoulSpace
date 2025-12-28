@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SoulSpace - Dashboard</title>
+    <style>
+        /* --- GLOBAL & LAYOUT --- */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f9fafb;
+            color: #1a1a1a;
+            min-height: 100vh;
+        }
+
+        .main-content {
+            margin-left: 16rem;
+            min-height: 100vh;
+            padding: 2rem;
+            transition: margin-left 0.3s ease;
+        }
+
+        @media (max-width: 1024px) {
+            .main-content { margin-left: 0; padding: 1.5rem; }
+        }
+
+        /* --- DASHBOARD HEADER --- */
+        .welcome-section { margin-bottom: 2rem; }
+        .welcome-title { font-size: 1.875rem; font-weight: 600; color: #111827; margin-bottom: 0.5rem; }
+        .welcome-subtitle { color: #6b7280; }
+
+        /* --- SECTION 1: STATUS CARDS --- */
+        .card-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; margin-bottom: 2.5rem; }
+        
+        .info-card { background: white; padding: 1.5rem; border-radius: 1rem; border: 1px solid #e5e7eb; box-shadow: 0 1px 2px rgba(0,0,0,0.05); transition: transform 0.2s; }
+        .info-card:hover { transform: translateY(-2px); border-color: #3b82f6; }
+        .info-card h3 { margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; font-size: 1.125rem; font-weight: 600; }
+        .btn-outline { display: inline-block; margin-top: 1rem; padding: 0.5rem 1rem; border: 1px solid #d1d5db; border-radius: 0.5rem; text-decoration: none; color: #374151; font-size: 0.875rem; font-weight: 500; transition: all 0.2s; }
+        .btn-outline:hover { background: #f9fafb; border-color: #9ca3af; }
+
+        /* --- SECTION 2: QUICK ACTIONS --- */
+        .quick-actions { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2.5rem; }
+        .action-card { background: white; padding: 1.25rem; border-radius: 1rem; border: 1px solid #e5e7eb; transition: all 0.2s; display: flex; flex-direction: column; gap: 0.75rem; text-decoration: none; color: inherit; }
+        .action-card:hover { transform: translateY(-4px); box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); border-color: #3b82f6; }
+        .icon-box { width: 2.5rem; height: 2.5rem; border-radius: 0.5rem; display: flex; align-items: center; justify-content: center; }
+        .bg-blue { background: #eff6ff; color: #3b82f6; }
+        .bg-purple { background: #f3e8ff; color: #9333ea; }
+        .bg-orange { background: #fff7ed; color: #f97316; }
+        .card-title { font-weight: 600; font-size: 1rem; }
+        .card-desc { color: #6b7280; font-size: 0.8rem; line-height: 1.4; }
+
+        /* --- PROFESSIONAL TABLE --- */
+        .appt-table-container { background: white; border-radius: 1rem; border: 1px solid #e5e7eb; overflow: hidden; margin-bottom: 2rem; }
+        .appt-table { width: 100%; border-collapse: collapse; }
+        .appt-table th { background: #f9fafb; padding: 1rem 1.5rem; text-align: left; font-size: 0.75rem; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1px solid #e5e7eb; }
+        .appt-table td { padding: 1rem 1.5rem; border-bottom: 1px solid #f3f4f6; color: #374151; font-size: 0.875rem; }
+        .status-badge { display: inline-flex; padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 500; background: #ecfdf5; color: #059669; }
+        
+        /* --- RECOMMENDATIONS (Bottom) --- */
+        .rec-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; }
+        .rec-card { background: white; padding: 1.25rem; border-radius: 1rem; border: 1px solid #e5e7eb; display: flex; gap: 1rem; align-items: flex-start; text-decoration: none; color: inherit; transition: border-color 0.2s; }
+        .rec-card:hover { border-color: #3b82f6; }
+        .rec-icon { flex-shrink: 0; width: 2.5rem; height: 2.5rem; background: #f0f9ff; color: #0284c7; border-radius: 0.5rem; display: flex; align-items: center; justify-content: center; }
+        .progress-bar { height: 0.4rem; background: #f3f4f6; border-radius: 9999px; overflow: hidden; margin-top: 0.5rem; }
+        .progress-fill { height: 100%; background: #3b82f6; border-radius: 9999px; }
+    </style>
+</head>
+<body>
+
+    <div th:replace="~{navigation :: sidebar-fragment}"></div>
+
+    <main class="main-content">
+        
+        <div class="welcome-section">
+            <h1 class="welcome-title" th:text="'Welcome back, ' + ${session.user}">Welcome back</h1>
+            <p class="welcome-subtitle">
+                <span th:if="${session.role == 'PROFESSIONAL'}">Here is your schedule for the upcoming week.</span>
+                <span th:unless="${session.role == 'PROFESSIONAL'}">Here is your daily wellness overview.</span>
+            </p>
+        </div>
+
+        <th:block th:switch="${session.role}">
+            
+            <th:block th:case="'PROFESSIONAL'">
+                <div class="appt-table-container">
+                    <table class="appt-table">
+                        <thead>
+                            <tr>
+                                <th>Client Name</th>
+                                <th>Date</th>
+                                <th>Time</th>
+                                <th>Type</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="appt : ${allAppointments}">
+                                <td style="font-weight: 500;" th:text="${appt.user.firstName} + ' ' + ${appt.user.lastName}">Name</td>
+                                <td th:text="${appt.appointmentDate}">Date</td>
+                                <td th:text="${appt.appointmentTime}">Time</td>
+                                <td th:text="${appt.type}">Type</td>
+                                <td><span class="status-badge" th:text="${appt.status}">Status</span></td>
+                                <td><button style="color:#2563eb; border:none; background:none; cursor:pointer;">Details</button></td>
+                            </tr>
+                            <tr th:if="${#lists.isEmpty(allAppointments)}">
+                                <td colspan="6" style="text-align:center; padding: 3rem; color:#6b7280;">No upcoming appointments found.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </th:block>
+
+            <th:block th:case="*">
+                
+                <div class="card-grid">
+                    <div class="info-card">
+                        <h3>
+                            <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                            Next Session
+                        </h3>
+                        <div th:if="${nextAppointment != null}">
+                            <p style="font-weight: 500;" th:text="${nextAppointment.professionalName}">Dr. Sarah</p>
+                            <p style="color: #6b7280; font-size: 0.9rem;" th:text="${nextAppointment.appointmentDate} + ' at ' + ${nextAppointment.appointmentTime}">Date</p>
+                        </div>
+                        <div th:unless="${nextAppointment != null}" style="color: #6b7280;">No upcoming sessions scheduled.</div>
+                        <a th:href="@{/booking}" class="btn-outline">Manage Booking</a>
+                    </div>
+
+                    <div class="info-card" style="background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); border-color: #bae6fd;">
+                        <h3 style="color: #0369a1;">
+                            <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                            Wellness Check
+                        </h3>
+                        <p style="font-weight: 500; color: #0c4a6e;" th:text="${assessment.title}">Stress Assessment</p>
+                        <p style="color: #075985; font-size: 0.9rem; margin-top:0.25rem;">Result: <span th:text="${assessment.result}">Moderate</span></p>
+                        <a href="#" class="btn-outline" style="background: white; border-color: white; color: #0284c7;">Take New</a>
+                    </div>
+                </div>
+
+                <div class="quick-actions">
+                    <a th:href="@{/chatbot}" class="action-card">
+                        <div class="icon-box bg-blue">
+                             <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path></svg>
+                        </div>
+                        <div>
+                            <div class="card-title">AI Guide</div>
+                            <div class="card-desc">Chat for instant support</div>
+                        </div>
+                    </a>
+                    <a th:href="@{/learning}" class="action-card">
+                        <div class="icon-box bg-purple">
+                            <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
+                        </div>
+                        <div>
+                            <div class="card-title">Learning</div>
+                            <div class="card-desc">Access courses</div>
+                        </div>
+                    </a>
+                    <a th:href="@{/booking}" class="action-card">
+                        <div class="icon-box bg-orange">
+                            <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                        </div>
+                        <div>
+                            <div class="card-title">Book</div>
+                            <div class="card-desc">Find a professional</div>
+                        </div>
+                    </a>
+                </div>
+
+                <div class="rec-grid">
+                    <a th:href="@{/learning}" class="rec-card" th:each="rec : ${recommendations}">
+                        <div class="rec-icon">
+                             <th:block th:if="${rec.iconType == 'brain'}">
+                                <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path></svg>
+                             </th:block>
+                             <th:block th:unless="${rec.iconType == 'brain'}">
+                                <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>
+                             </th:block>
+                        </div>
+                        <div style="flex:1;">
+                            <h4 th:text="${rec.title}">Title</h4>
+                            <div style="font-size:0.875rem; color:#6b7280; margin-bottom:0.5rem;" th:text="${rec.type} + ' • ' + ${rec.duration}">Details</div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" th:style="'width: ' + ${rec.progress} + '%;'"></div>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+
+            </th:block>
+        </th:block>
+    </main>
+</body>
+</html>
