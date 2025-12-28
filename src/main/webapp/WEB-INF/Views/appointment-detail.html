@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>SoulSpace - Appointment Details</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f9fafb; color: #1a1a1a; min-height: 100vh; }
+        .main-content { margin-left: 16rem; min-height: 100vh; padding: 2rem; transition: margin-left 0.3s ease; }
+        @media (max-width: 1024px) { .main-content { margin-left: 0; padding: 1.5rem; } }
+
+        .container { max-width: 800px; margin: 0 auto; }
+        .back-link { display: inline-flex; align-items: center; gap: 0.5rem; color: #6b7280; text-decoration: none; margin-bottom: 1.5rem; font-weight: 500; }
+        
+        .detail-card { background: white; border-radius: 1rem; border: 1px solid #e5e7eb; padding: 2rem; }
+        
+        .header-section { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2rem; border-bottom: 1px solid #f3f4f6; padding-bottom: 1.5rem; }
+        .prof-info { display: flex; align-items: center; gap: 1rem; }
+        .avatar { width: 4rem; height: 4rem; background: #3b82f6; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: 600; }
+        
+        .status-badge { padding: 0.5rem 1rem; border-radius: 99px; font-weight: 600; font-size: 0.875rem; }
+        .status-Confirmed { background: #dbeafe; color: #1e40af; }
+        .status-Completed { background: #dcfce7; color: #166534; }
+
+        .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 2rem; }
+        .info-item h4 { color: #6b7280; font-size: 0.875rem; margin-bottom: 0.5rem; font-weight: 500; }
+        .info-item p { font-size: 1.1rem; font-weight: 500; }
+
+        .action-box { background: #f9fafb; padding: 1.5rem; border-radius: 0.75rem; border: 1px solid #e5e7eb; margin-top: 2rem; }
+        .join-btn { display: inline-block; width: 100%; text-align: center; padding: 1rem; background: #2563eb; color: white; text-decoration: none; border-radius: 0.5rem; font-weight: 600; margin-bottom: 1rem; }
+        .join-btn:hover { background: #1d4ed8; }
+        
+        .message-btn { display: inline-block; width: 100%; text-align: center; padding: 1rem; background: white; color: #2563eb; border: 1px solid #2563eb; border-radius: 0.5rem; font-weight: 600; text-decoration: none; cursor: pointer; }
+        
+        .notes-section { margin-top: 2rem; border-top: 1px solid #f3f4f6; padding-top: 1.5rem; }
+        .notes-box { background: #fffbeb; border: 1px solid #fcd34d; padding: 1rem; border-radius: 0.5rem; color: #92400e; line-height: 1.6; }
+    </style>
+</head>
+<body>
+    <div th:replace="~{navigation :: sidebar-fragment}"></div>
+
+    <main class="main-content">
+        <div class="container">
+            <a th:href="@{/booking}" class="back-link">← Back to Appointments</a>
+
+            <div class="detail-card">
+                <div class="header-section">
+                    <div class="prof-info">
+                        <div class="avatar" th:text="${appt.professional.initials}">Dr</div>
+                        <div>
+                            <h1 style="font-size:1.5rem; margin-bottom:0.25rem;" th:text="${appt.professional.firstName} + ' ' + ${appt.professional.lastName}">Dr. Name</h1>
+                            <p style="color:#6b7280;">Clinical Psychologist</p>
+                        </div>
+                    </div>
+                    <span th:class="'status-badge status-' + ${appt.status}" th:text="${appt.status}">Confirmed</span>
+                </div>
+
+                <div class="info-grid">
+                    <div class="info-item">
+                        <h4>Date</h4>
+                        <p th:text="${appt.formattedDate}">Dec 12, 2025</p>
+                    </div>
+                    <div class="info-item">
+                        <h4>Time</h4>
+                        <p th:text="${appt.formattedTime}">10:00 AM</p>
+                    </div>
+                    <div class="info-item">
+                        <h4>Type</h4>
+                        <p th:text="${appt.type}">Video Call</p>
+                    </div>
+                    <div class="info-item">
+                        <h4>Location</h4>
+                        <p th:if="${appt.type == 'Video'}">Online Meeting</p>
+                        <p th:if="${appt.type != 'Video'}" th:text="${appt.venue}">Clinic Room 1</p>
+                    </div>
+                </div>
+
+                <div class="action-box" th:if="${!appt.isPast() and appt.type == 'Video'}">
+                    <a th:href="${appt.meetingLink}" target="_blank" class="join-btn">Join Video Session</a>
+                    <p style="text-align:center; font-size:0.875rem; color:#6b7280;">Link becomes active 5 minutes before start.</p>
+                </div>
+
+                <div class="notes-section" th:if="${appt.isPast()}">
+                    <h3 style="margin-bottom:1rem;">Session Summary</h3>
+                    
+                    <div style="margin-bottom:1.5rem;" th:if="${appt.followUpDate != null}">
+                        <h4 style="font-size:0.875rem; color:#6b7280;">Next Follow-up</h4>
+                        <p style="font-weight:600;" th:text="${#temporals.format(appt.followUpDate, 'MMM dd, yyyy')}">Jan 01</p>
+                    </div>
+
+                    <div class="notes-box" th:if="${appt.professionalNotes != null}">
+                        <strong>Doctor's Notes:</strong><br>
+                        <span th:text="${appt.professionalNotes}">Keep practicing mindfulness.</span>
+                    </div>
+                    
+                    <div class="notes-box" th:if="${appt.professionalNotes == null}">
+                        No notes added for this session.
+                    </div>
+                </div>
+
+                <div style="margin-top:2rem;">
+                    <a th:href="@{/messaging(chatWith=${appt.professional.id})}" class="message-btn">
+                        Message Dr. <span th:text="${appt.professional.lastName}">Smith</span>
+                    </a>
+                </div>
+
+            </div>
+        </div>
+    </main>
+</body>
+</html>
