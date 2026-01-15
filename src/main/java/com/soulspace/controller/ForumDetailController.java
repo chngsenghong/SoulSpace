@@ -29,13 +29,22 @@ public class ForumDetailController {
     }
 
     @GetMapping
-    public String showPostDetail(@RequestParam("id") Long id, Model model) {
+    public String showPostDetail(@RequestParam("id") Long id, Model model, HttpSession session) {
         if (id != null) {
-            // Use Service to get from DB
-            ForumPost post = forumService.getPostById(id);
+            ForumPost post = forumService.getPostAndIncrementViews(id);
             
             if (post != null) {
                 model.addAttribute("post", post);
+                
+                String email = (String) session.getAttribute("email");
+                
+                if (email != null) {
+                    User currentUser = userService.getUserByEmail(email);
+                    model.addAttribute("hasSupported", post.isSupportedBy(currentUser));
+                } else {
+                    model.addAttribute("hasSupported", false);
+                }
+
                 return "forum-detail";
             }
         }
@@ -54,8 +63,21 @@ public class ForumDetailController {
 
         User user = userService.getUserByEmail(email);
         
-        // Call the service
         forumService.addComment(postId, content, user);
+
+        return "redirect:/forum/post?id=" + postId; 
+    }
+
+    @PostMapping("/support")
+    public String toggleSupport(@RequestParam("postId") Long postId, HttpSession session) {
+        String email = (String) session.getAttribute("email");
+        if (email == null) {
+            return "redirect:/login"; 
+        }
+
+        User user = userService.getUserByEmail(email);
+        
+        forumService.toggleSupport(postId, user);
 
         return "redirect:/forum/post?id=" + postId; 
     }

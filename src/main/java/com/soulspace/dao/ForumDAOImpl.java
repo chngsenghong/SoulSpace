@@ -6,6 +6,7 @@ import org.springframework.stereotype.Repository;
 
 import com.soulspace.model.Comment;
 import com.soulspace.model.ForumPost;
+import com.soulspace.model.PostReaction;
 import com.soulspace.model.PostStatus;
 
 import jakarta.persistence.EntityManager;
@@ -115,5 +116,29 @@ public class ForumDAOImpl implements ForumDAO {
             "FROM ForumPost p WHERE p.status = 'PENDING_REVIEW' ORDER BY p.createdAt ASC", 
             ForumPost.class
         ).getResultList();
+    }
+
+    @Override
+    public PostReaction findReaction(Long postId, Long userId) {
+        try {
+            return entityManager.createQuery(
+                "FROM PostReaction r WHERE r.post.id = :postId AND r.user.id = :userId", 
+                PostReaction.class)
+                .setParameter("postId", postId)
+                .setParameter("userId", userId)
+                .getSingleResult();
+        } catch (jakarta.persistence.NoResultException e) {
+            return null;
+        }
+    }
+
+    @Override
+    public void addReaction(PostReaction reaction) {
+        entityManager.persist(reaction);
+    }
+
+    @Override
+    public void removeReaction(PostReaction reaction) {
+        entityManager.remove(reaction);
     }
 }

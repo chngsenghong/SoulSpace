@@ -3,7 +3,9 @@ package com.soulspace.model;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -50,6 +52,10 @@ public class ForumPost {
 
     @Enumerated(EnumType.STRING)
     private PostStatus status; // New field
+
+    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<PostReaction> reactions = new HashSet<>();
+
 
     public ForumPost() {}
 
@@ -105,4 +111,21 @@ public class ForumPost {
 
     public PostStatus getStatus() { return status; }
     public void setStatus(PostStatus status) { this.status = status; }
+
+    public boolean isSupportedBy(User user) {
+        if (user == null) return false;
+        for (PostReaction reaction : reactions) {
+            if (reaction.getUser().getId().equals(user.getId())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public int getSupportCount() {
+        return reactions.size();
+    }
+
+    public Set<PostReaction> getReactions() { return reactions; }
+    public void setReactions(Set<PostReaction> reactions) { this.reactions = reactions; }
 }

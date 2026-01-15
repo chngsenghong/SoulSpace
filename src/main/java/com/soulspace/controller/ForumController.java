@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.soulspace.model.ForumPost;
 import com.soulspace.model.User;
@@ -57,7 +58,8 @@ public class ForumController {
             @RequestParam(value = "category", required = false) String category,
             @RequestParam(value = "content", required = false) String content,
             @RequestParam(value = "tags", required = false) String tagsInput,
-            HttpSession session) {
+            HttpSession session,
+            RedirectAttributes redirectAttributes) {
 
         // 1. Get Logged-in User
         String email = (String) session.getAttribute("email");
@@ -68,7 +70,17 @@ public class ForumController {
         }
 
         if ("create".equals(action)) {
-            // ... create logic remains same ...
+            // 1. Create the post object
+            ForumPost newPost = new ForumPost(user, title, content, category, tagsInput);
+            
+            // 2. Save it (Service will set status to PENDING if triggers found)
+            forumService.addPost(newPost);
+            
+            // 3. CHECK STATUS: Did it get flagged?
+            if (newPost.getStatus() == com.soulspace.model.PostStatus.PENDING_REVIEW) {
+                // Pass a flash attribute to trigger the modal
+                redirectAttributes.addFlashAttribute("triggerAlert", true);
+            }
         } else if (id != null) {
             ForumPost existingPost = forumService.getPostById(id);
             
@@ -98,5 +110,19 @@ public class ForumController {
         }
         
         return "redirect:/forum";
+    }
+
+    @PostMapping("/support")
+    public String toggleSupport(@RequestParam("postId") Long postId, HttpSession session) {
+        String email = (String) session.getAttribute("email");
+        if (email == null) {
+            return "redirect:/login"; 
+        }
+
+        User user = userService.getUserByEmail(email);
+        forumService.toggleSupport(postId, user);
+
+        // Reload the page to show the new state
+        return "redirect:/forum/post?id=" + postId; 
     }
 }
