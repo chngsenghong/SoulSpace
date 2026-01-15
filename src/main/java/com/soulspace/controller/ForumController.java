@@ -1,5 +1,6 @@
 package com.soulspace.controller;
 
+import java.util.Arrays;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,13 +40,24 @@ public class ForumController {
         
         // Use the new filter method
         List<ForumPost> posts = forumService.filterPosts(query, category, sort);
-        
         model.addAttribute("forumPosts", posts);
+
+        List<String> categories = Arrays.asList(
+            "Academic Stress", "Mental Health", "Relationships", 
+            "Campus Life", "Confessions", "Encouragement", "Others"
+        );
         
+        List<String> predefinedTags = Arrays.asList(
+            "Anxiety", "Depression", "Exams", "Loneliness", 
+            "Advice Needed", "Rant", "Sleep", "Success Story"
+        );
+
         // Keep the current selection in the model to highlight UI buttons
         model.addAttribute("searchQuery", query);
         model.addAttribute("currentCategory", category);
         model.addAttribute("currentSort", sort);
+        model.addAttribute("categories", categories);
+        model.addAttribute("predefinedTags", predefinedTags);
         
         return "forum";
     }
@@ -57,7 +69,7 @@ public class ForumController {
             @RequestParam(value = "title", required = false) String title,
             @RequestParam(value = "category", required = false) String category,
             @RequestParam(value = "content", required = false) String content,
-            @RequestParam(value = "tags", required = false) String tagsInput,
+            @RequestParam(value = "tags", required = false) List<String> tags,
             HttpSession session,
             RedirectAttributes redirectAttributes) {
 
@@ -71,7 +83,7 @@ public class ForumController {
 
         if ("create".equals(action)) {
             // 1. Create the post object
-            ForumPost newPost = new ForumPost(user, title, content, category, tagsInput);
+            ForumPost newPost = new ForumPost(user, title, content, category, tags);
             
             // 2. Save it (Service will set status to PENDING if triggers found)
             forumService.addPost(newPost);

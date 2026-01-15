@@ -3,6 +3,7 @@ package com.soulspace.model;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -59,12 +60,18 @@ public class ForumPost {
 
     public ForumPost() {}
 
-     public ForumPost(User author, String title, String content, String category, String tags) {
+    public ForumPost(User author, String title, String content, String category, List<String> tags) {
         this.author = author;
         this.title = title;
         this.content = content;
         this.category = category;
-        this.tags = tags;
+        
+        if (tags != null && !tags.isEmpty()) {
+            this.tags = String.join(",", tags);
+        } else {
+            this.tags = null;
+        }
+
         this.views = 0;
         this.pinned = false;
         this.createdAt = LocalDateTime.now();
@@ -79,6 +86,13 @@ public class ForumPost {
     public String getTimeAgo() {
         if (createdAt == null) return "Just now";
         return createdAt.format(DateTimeFormatter.ofPattern("MMM dd, yyyy"));
+    }
+
+    public List<String> getTagList() {
+        if (this.tags == null || this.tags.isEmpty()) {
+            return new ArrayList<>();
+        }
+        return Arrays.asList(this.tags.split(","));
     }
 
     // Getters and Setters
