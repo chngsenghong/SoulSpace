@@ -134,7 +134,7 @@
                     No appointments scheduled yet.
                 </div>
                 
-                <div th:each="appt : ${myAppointments}" class="appt-item">
+                <div th:each="appt : ${myAppointments}" class="appt-item"  th:onclick="|window.location.href='@{/appointment/{id}(id=${appt.id})}'|">
                     <div style="display:flex; align-items:center;">
                         <div class="appt-date-box">
                             <div style="font-weight:bold; font-size:1.2rem;" th:text="${appt.day ?: '--'}">12</div>
@@ -172,7 +172,11 @@
                     <div class="time-slot" onclick="selectTime(this, '16:00')">04:00 PM</div>
                 </div>
                 <input type="hidden" name="time" id="timeInput" required>
-                <input type="hidden" name="type" value="Video"> 
+                <label style="display:block; margin-bottom:0.5rem; font-weight:500; margin-top:1rem;">Session Type</label>
+                <select name="type" class="form-input" required>
+                    <option value="VIDEO">Video Call</option>
+                    <option value="IN_PERSON">In-Person Visit</option>
+                </select>
 
                 <div style="display:flex; justify-content:flex-end; gap:1rem; margin-top:2rem;">
                     <button type="button" onclick="closeModal()" class="btn-cancel">Cancel</button>

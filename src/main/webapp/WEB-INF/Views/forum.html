@@ -59,17 +59,16 @@
 
     <main class="main-content">
         <div class="page-header">
-            <h1>Community Forum</h1>
+            <h1 th:text="${isHistory} ? 'My Post History' : 'Community Forum'">Community Forum</h1>
             
             <div style="flex-grow: 1; margin: 0 2rem; max-width: 600px;">
-                <form th:action="@{/forum}" method="get" style="display: flex; gap: 0.5rem;">
+                <form th:if="${!isHistory}" th:action="@{/forum}" method="get" style="display: flex; gap: 0.5rem;">
                     
                     <select name="category" 
                             onchange="this.form.submit()" 
                             style="padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 0.5rem; background-color: white; cursor: pointer; max-width: 150px;">
                         
                         <option value="">All Topics</option>
-                        
                         <option th:each="cat : ${categories}" 
                                 th:value="${cat}" 
                                 th:text="${cat}"
@@ -93,7 +92,19 @@
                 </form>
             </div>
 
-            <a href="#" class="btn-new" onclick="document.getElementById('createModal').style.display='flex'">+ New Post</a>
+            <div style="display:flex; gap:0.5rem;">
+                <a th:if="${isHistory}" th:href="@{/forum}" class="btn-new" 
+                   style="background:white; color:#374151; border:1px solid #d1d5db;">
+                   ← Back to Forum
+                </a>
+
+                <a th:if="${!isHistory}" th:href="@{/forum/history}" class="btn-new" 
+                   style="background:white; color:#3b82f6; border:1px solid #3b82f6;">
+                   My History
+                </a>
+
+                <a href="#" class="btn-new" onclick="document.getElementById('createModal').style.display='flex'">+ New Post</a>
+            </div>
         </div>
 
         <div class="post-list">
