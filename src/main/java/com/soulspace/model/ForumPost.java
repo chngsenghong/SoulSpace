@@ -8,6 +8,9 @@ import java.util.List;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -38,17 +41,19 @@ public class ForumPost {
     private String tags; 
     private int views;
     private boolean pinned;
+
+    @Column(name = "created_at")
     private LocalDateTime createdAt;
 
-    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private List<Comment> comments = new ArrayList<>();
 
-    // 1. No-Arg Constructor (REQUIRED for Hibernate)
+    @Enumerated(EnumType.STRING)
+    private PostStatus status; // New field
+
     public ForumPost() {}
 
-    // 2. Parameterized Constructor (REQUIRED for Controller)
-    // Note: We don't pass ID (auto-generated) or Date (auto-generated)
-    public ForumPost(User author, String title, String content, String category, String tags) {
+     public ForumPost(User author, String title, String content, String category, String tags) {
         this.author = author;
         this.title = title;
         this.content = content;
@@ -56,7 +61,8 @@ public class ForumPost {
         this.tags = tags;
         this.views = 0;
         this.pinned = false;
-        this.createdAt = LocalDateTime.now(); // Set time immediately
+        this.createdAt = LocalDateTime.now();
+        this.status = PostStatus.PUBLISHED; 
     }
 
     @PrePersist
@@ -96,4 +102,7 @@ public class ForumPost {
 
     public List<Comment> getComments() { return comments; }
     public void setComments(List<Comment> comments) { this.comments = comments; }
+
+    public PostStatus getStatus() { return status; }
+    public void setStatus(PostStatus status) { this.status = status; }
 }

@@ -22,6 +22,7 @@
         
         .tags { margin-top: 1rem; display: flex; gap: 0.5rem; }
         .tag { background: #f3f4f6; color: #4b5563; padding: 0.25rem 0.75rem; border-radius: 999px; font-size: 0.75rem; font-weight: 500; }
+        
     </style>
 </head>
 <body>
@@ -30,6 +31,22 @@
     <main class="main-content">
         <div class="page-header">
             <h1>Community Forum</h1>
+            
+            <div style="flex-grow: 1; margin: 0 2rem; max-width: 500px;">
+                <form th:action="@{/forum}" method="get" style="display: flex; gap: 0.5rem;">
+                    <input type="text" name="query" th:value="${searchQuery}" 
+                        placeholder="Search topics, tags, or content..." 
+                        style="width: 100%; padding: 0.5rem 1rem; border: 1px solid #d1d5db; border-radius: 0.5rem;">
+                    <button type="submit" style="background: #3b82f6; color: white; border: none; padding: 0.5rem 1rem; border-radius: 0.5rem; cursor: pointer;">
+                        Search
+                    </button>
+                    <a th:if="${searchQuery != null}" th:href="@{/forum}" 
+                    style="display: flex; align-items: center; color: #6b7280; text-decoration: none; padding: 0 0.5rem;">
+                    ✕
+                    </a>
+                </form>
+            </div>
+
             <a href="#" class="btn-new" onclick="document.getElementById('createModal').style.display='flex'">+ New Post</a>
         </div>
 

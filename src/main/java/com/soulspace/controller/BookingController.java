@@ -59,7 +59,7 @@ public class BookingController {
 
     @PostMapping
     public String bookAppointment(
-        @RequestParam("professionalId") Long professionalId, // FIX: Use ID from form
+        @RequestParam("professionalId") Long professionalId, 
         @RequestParam("date") String date,
         @RequestParam("time") String time,
         @RequestParam("type") String type,

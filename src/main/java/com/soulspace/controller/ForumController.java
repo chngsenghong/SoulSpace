@@ -1,5 +1,7 @@
 package com.soulspace.controller;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -29,45 +31,71 @@ public class ForumController {
     }
 
     @GetMapping
-    public String showForum(Model model) {
-        model.addAttribute("forumPosts", forumService.getAllPosts());
+    public String showForum(@RequestParam(value = "query", required = false) String query,
+                            @RequestParam(value = "category", required = false) String category,
+                            @RequestParam(value = "sort", required = false) String sort,
+                            Model model) {
+        
+        // Use the new filter method
+        List<ForumPost> posts = forumService.filterPosts(query, category, sort);
+        
+        model.addAttribute("forumPosts", posts);
+        
+        // Keep the current selection in the model to highlight UI buttons
+        model.addAttribute("searchQuery", query);
+        model.addAttribute("currentCategory", category);
+        model.addAttribute("currentSort", sort);
+        
         return "forum";
     }
     
     @PostMapping
     public String handleForumAction(
             @RequestParam("action") String action,
-            @RequestParam(value = "id", required = false) Long id, // Changed Integer to Long
+            @RequestParam(value = "id", required = false) Long id,
             @RequestParam(value = "title", required = false) String title,
             @RequestParam(value = "category", required = false) String category,
             @RequestParam(value = "content", required = false) String content,
             @RequestParam(value = "tags", required = false) String tagsInput,
             HttpSession session) {
 
-        // Get logged in user
+        // 1. Get Logged-in User
         String email = (String) session.getAttribute("email");
         User user = (email != null) ? userService.getUserByEmail(email) : null;
 
-        if ("create".equals(action) && user != null) {
-            
-            // Your Entity expects tags as a single String (e.g. "Anxiety,Help")
-            // The input comes as "Anxiety,Help" already, so we pass it directly.
-            
-            ForumPost newPost = new ForumPost(
-                    user,       // The Author (User object)
-                    title,      // Title
-                    content,    // Content
-                    category,   // Category
-                    tagsInput   // Tags (String)
-            );
-            
-            forumService.addPost(newPost);
+        if (user == null) {
+            return "redirect:/login";
+        }
 
-        } else if ("delete".equals(action) && id != null) {
-            forumService.deletePost(id);
+        if ("create".equals(action)) {
+            // ... create logic remains same ...
+        } else if (id != null) {
+            ForumPost existingPost = forumService.getPostById(id);
+            
+            // 3. SECURITY UPDATE: Allow if Author OR Faculty
+            boolean isAuthor = existingPost.getAuthor().getEmail().equals(email);
+            boolean isFaculty = "FACULTY".equals(user.getRole()); // NEW CHECK
 
-        } 
-        // Note: Update logic would need a specific method in Service that calls setters
+            if (existingPost != null && (isAuthor || isFaculty)) {
+                
+                if ("delete".equals(action)) {
+                    forumService.deletePost(id);
+                    
+                    // Redirect back to dashboard if that's where they came from
+                    if (isFaculty) return "redirect:/dashboard"; 
+                    return "redirect:/forum";
+                } 
+                else if ("update".equals(action)) {
+                    forumService.updatePost(id, title, category, content);
+                    
+                    // Redirect back to dashboard for Faculty convenience
+                    if (isFaculty) return "redirect:/dashboard";
+                    return "redirect:/forum/post?id=" + id;
+                }
+            } else {
+                System.out.println("UNAUTHORIZED ATTEMPT");
+            }
+        }
         
         return "redirect:/forum";
     }

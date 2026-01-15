@@ -31,7 +31,7 @@ public class UserService {
         return userDAO.findById(id);
     }
     
-    @Transactional(readOnly = true)
+    @Transactional
     public void updateUserProfile(User user) {
         userDAO.saveUser(user);
     }
