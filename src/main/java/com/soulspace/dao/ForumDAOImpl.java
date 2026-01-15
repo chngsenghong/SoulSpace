@@ -58,20 +58,22 @@ public class ForumDAOImpl implements ForumDAO {
 
     @Override
     public List<ForumPost> searchPosts(String keyword) {
-    // JPQL Query to search title, content, or category (case-insensitive)
-        String jpql = "FROM ForumPost p WHERE LOWER(p.title) LIKE :key " +
+        // UPDATED: Added "AND p.status = 'PUBLISHED'"
+        String jpql = "FROM ForumPost p WHERE p.status = 'PUBLISHED' " + 
+                    "AND (LOWER(p.title) LIKE :key " +
                     "OR LOWER(p.content) LIKE :key " +
-                    "OR LOWER(p.category) LIKE :key " +
+                    "OR LOWER(p.category) LIKE :key) " +
                     "ORDER BY p.createdAt DESC";
                     
         return entityManager.createQuery(jpql, ForumPost.class)
-                .setParameter("key", "%" + keyword.toLowerCase() + "%") // Add % for wildcard search
+                .setParameter("key", "%" + keyword.toLowerCase() + "%")
                 .getResultList();
     }
 
     @Override
     public List<ForumPost> filterPosts(String keyword, String category, String sort) {
-        StringBuilder jpql = new StringBuilder("FROM ForumPost p WHERE 1=1");
+        // UPDATED: Start with status check
+        StringBuilder jpql = new StringBuilder("FROM ForumPost p WHERE p.status = 'PUBLISHED'");
         
         // 1. Dynamic Filtering
         if (keyword != null && !keyword.isEmpty()) {
@@ -83,11 +85,11 @@ public class ForumDAOImpl implements ForumDAO {
 
         // 2. Dynamic Sorting
         if ("popular".equals(sort)) {
-            jpql.append(" ORDER BY size(p.comments) DESC, p.views DESC"); // Most discussed first
+            jpql.append(" ORDER BY size(p.comments) DESC, p.views DESC");
         } else if ("oldest".equals(sort)) {
             jpql.append(" ORDER BY p.createdAt ASC");
         } else {
-            jpql.append(" ORDER BY p.createdAt DESC"); // Default: Newest
+            jpql.append(" ORDER BY p.createdAt DESC");
         }
 
         var query = entityManager.createQuery(jpql.toString(), ForumPost.class);
