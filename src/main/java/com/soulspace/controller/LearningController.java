@@ -1,110 +1,275 @@
 package com.soulspace.controller;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import jakarta.servlet.http.HttpServletResponse;
+import com.soulspace.dao.LearningLessonDAO; 
+import com.soulspace.dao.EnrollmentDAO; 
+import com.soulspace.dao.LessonProgressDAO; 
+import com.soulspace.model.Learning;
+import com.soulspace.model.LearningLesson;
+import com.soulspace.model.Enrollment;
+import com.soulspace.service.LearningService;
+import com.soulspace.service.CourseProgressService; 
 import jakarta.servlet.http.HttpSession;
-
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.ArrayList; 
+import java.util.HashMap; 
+import java.util.List;
+import java.util.Map;
 
 @Controller
 @RequestMapping("/learning")
 public class LearningController {
 
-    @GetMapping
-    public String handleLearningRequest(
-            @RequestParam(value = "action", required = false) String action,
-            @RequestParam(value = "courseId", required = false) String courseId,
-            @RequestParam(value = "certId", required = false) String certId,
-            HttpSession session,
-            Model model,
-            HttpServletResponse response) throws IOException {
+    @Autowired private LearningService learningService;
+    @Autowired private LearningLessonDAO learningLessonDAO; 
+    @Autowired private CourseProgressService progressService; 
+    @Autowired private EnrollmentDAO enrollmentDAO; 
+    @Autowired private LessonProgressDAO lessonProgressDAO; 
 
-        if ("start".equals(action) && courseId != null) {
-            session.setAttribute("lastCourseStarted", courseId);
-            System.out.println("Starting course: " + courseId);
-            return "redirect:/learning";
-        } 
+    // 1. Browse Page (Existing)
+    @GetMapping
+    public String browseCourses(
+            @RequestParam(name = "search", required = false) String search,
+            @RequestParam(name = "category", required = false, defaultValue = "All Categories") String category,
+            @RequestParam(name = "level", required = false, defaultValue = "All Levels") String level,
+            @RequestParam(name = "sort", required = false, defaultValue = "pop") String sort,
+            HttpSession session, 
+            Model model) {
         
-        if ("download".equals(action) && certId != null) {
-            // In a real Spring app, you'd likely return a ResponseEntity<Resource>
-            // For direct migration of servlet logic writing to stream:
-            response.setContentType("text/html");
-            response.getWriter().println("<h3>Downloading Certificate ID: " + certId + "</h3>");
-            response.getWriter().println("<p>Simulating PDF download...</p>");
-            response.getWriter().println("<a href='learning'>Go Back</a>");
-            return null; // Response handled manually
+        List<Learning> courses = learningService.searchCourses(search, category, level);
+        
+        Long userId = (Long) session.getAttribute("userId");
+        if(userId == null) userId = 1L; 
+
+        // Create a Map of [CourseID -> ProgressPercent]
+        Map<Long, Integer> enrollmentMap = new HashMap<>();
+        
+        List<Enrollment> userEnrollments = enrollmentDAO.findByUserId(userId);
+        if (userEnrollments != null) {
+            for (Enrollment e : userEnrollments) {
+                enrollmentMap.put(e.getCourse().getId(), e.getProgressPercent());
+            }
         }
 
-        // Default: Load Page Data
-        loadLearningPageData(model);
+        model.addAttribute("courses", courses);
+        model.addAttribute("enrollmentMap", enrollmentMap); 
+        
+        model.addAttribute("selectedCategory", category);
+        model.addAttribute("selectedLevel", level);
+        model.addAttribute("searchKeyword", search);
+        model.addAttribute("selectedSort", sort);
+        
         return "learning";
     }
 
-    private void loadLearningPageData(Model model) {
-        // Stats
-        Map<String, Object> stats = new HashMap<>();
-        stats.put("coursesInProgress", 3);
-        stats.put("certificatesEarned", 5);
-        stats.put("learningTime", "12h 30m");
-        model.addAttribute("stats", stats);
+    // 2. Course Detail Page (Existing)
+    @GetMapping("/{id}")
+    public String courseDetail(@PathVariable("id") Long id, HttpSession session, Model model) {
+        Learning course = learningService.getModuleById(id);
+        if (course == null) return "redirect:/learning";
 
-        // Featured Course
-        Map<String, String> featured = new HashMap<>();
-        featured.put("id", "c101");
-        featured.put("title", "Mastering Emotional Resilience");
-        featured.put("description", "Learn how to bounce back from setbacks and build mental strength.");
-        model.addAttribute("featuredCourse", featured);
+        List<LearningLesson> curriculum = learningLessonDAO.findByCourseId(id);
+        Long userId = (Long) session.getAttribute("userId");
+        if(userId == null) userId = 1L; 
 
-        // Courses List (Mock)
-        List<Map<String, Object>> courses = getMockCourses();
-        model.addAttribute("courses", courses);
+        boolean isEnrolled = learningService.isUserEnrolled(userId, id);
+        int currentProgress = 0;
         
-        // In Progress (Mock - subset of courses)
-        List<Map<String, Object>> inProgress = new ArrayList<>();
-        if(!courses.isEmpty()) inProgress.add(courses.get(0));
-        model.addAttribute("inProgressCourses", inProgress);
+        List<Long> completedLessonIds = new ArrayList<>();
+        
+        if(isEnrolled) {
+             // Calculate completed lessons
+             if (curriculum != null && !curriculum.isEmpty()) {
+                 for (LearningLesson lesson : curriculum) {
+                     if (progressService.isLessonCompleted(userId, lesson.getId())) {
+                         completedLessonIds.add(lesson.getId());
+                     }
+                 }
+                 // Calculate progress dynamically
+                 currentProgress = (int) Math.round(((double) completedLessonIds.size() / curriculum.size()) * 100);
+             }
+        }
 
-        // Certificates (Mock)
-        model.addAttribute("certificates", getMockCertificates());
+        model.addAttribute("course", course);
+        model.addAttribute("curriculum", curriculum); 
+        model.addAttribute("isEnrolled", isEnrolled);
+        model.addAttribute("courseProgress", currentProgress);
+        model.addAttribute("completedLessonIds", completedLessonIds);
+
+        return "learning-detail";
     }
 
-    // Helper methods getMockCourses() and getMockCertificates() 
-    // would contain the same data population logic as in your Servlet.
-    private List<Map<String, Object>> getMockCourses() {
-         List<Map<String, Object>> courses = new ArrayList<>();
-         // ... Add courses logic from servlet ...
-         // Example:
-         Map<String, Object> c1 = new HashMap<>();
-         c1.put("id", "c1");
-         c1.put("title", "Understanding Anxiety");
-         c1.put("category", "Anxiety");
-         c1.put("description", "Learn the biological and psychological mechanisms of anxiety.");
-         c1.put("duration", "45 min");
-         c1.put("lessonsCount", 5);
-         c1.put("progress", 60);
-         // Simplified SVG for brevity
-         c1.put("iconSvg", "<svg>...</svg>"); 
-         c1.put("thumbnailStyle", "background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%); color: #0284c7;");
-         courses.add(c1);
-         return courses;
+    // 3. Enrollment Actions (Existing)
+    @PostMapping("/enroll/{id}")
+    public String enrollCourse(@PathVariable("id") Long id, HttpSession session) {
+        Long userId = (Long) session.getAttribute("userId");
+        if(userId == null) userId = 1L; 
+        learningService.enrollUser(userId, id);
+        return "redirect:/learning/" + id;
     }
 
-    private List<Map<String, Object>> getMockCertificates() {
-        List<Map<String, Object>> certs = new ArrayList<>();
-        Map<String, Object> cert1 = new HashMap<>();
-        cert1.put("id", "cert1");
-        cert1.put("courseName", "Mindfulness Basics");
-        cert1.put("completionDate", "Nov 10, 2025");
-        certs.add(cert1);
-        return certs;
+    @PostMapping("/unenroll/{id}")
+    public String unenrollCourse(@PathVariable("id") Long id, HttpSession session) {
+        Long userId = (Long) session.getAttribute("userId");
+        if(userId == null) userId = 1L; 
+        
+        lessonProgressDAO.deleteProgressByCourse(userId, id);
+        
+        learningService.unenrollUser(userId, id);
+        return "redirect:/learning/" + id;
+    }
+
+    // 4. My Courses Page (Existing)
+    @GetMapping("/my-courses")
+    public String myCourses(HttpSession session, Model model) {
+        Long userId = (Long) session.getAttribute("userId");
+        if(userId == null) userId = 1L; 
+
+        List<Enrollment> enrollments = enrollmentDAO.findByUserId(userId);
+
+        // Recalculate progress for every course
+        if (enrollments != null) {
+            for (Enrollment enrollment : enrollments) {
+                Long courseId = enrollment.getCourse().getId();
+                List<LearningLesson> lessons = learningLessonDAO.findByCourseId(courseId);
+                
+                if (lessons != null && !lessons.isEmpty()) {
+                    int totalLessons = lessons.size();
+                    int completedCount = 0;
+                    
+                    // Check actual completion status for each lesson
+                    for (LearningLesson lesson : lessons) {
+                        if (progressService.isLessonCompleted(userId, lesson.getId())) {
+                            completedCount++;
+                        }
+                    }
+                    
+                    // Calculate percentage
+                    int realProgress = (int) Math.round(((double) completedCount / totalLessons) * 100);
+                    
+                    // Update the enrollment object in memory
+                    enrollment.setProgressPercent(realProgress);
+                } else {
+                    enrollment.setProgressPercent(0);
+                }
+            }
+        }
+
+        model.addAttribute("enrollments", enrollments);
+        return "learning-my-courses";
+    }
+    
+    // 5. Analytics Page (Existing)
+    @GetMapping("/analytics")
+    public String analytics(HttpSession session, Model model) {
+        Long userId = (Long) session.getAttribute("userId");
+        if(userId == null) userId = 1L; 
+
+        Map<String, Object> stats = progressService.getUserAnalytics(userId);
+        model.addAttribute("stats", stats);
+        return "learning-analytics";
+    }
+
+    // ---------------------------------------------------------
+    // NEW METHODS: Play Lesson & Complete Lesson (Fixes 404)
+    // ---------------------------------------------------------
+
+    @GetMapping("/play/{courseId}/{lessonId}")
+    public String playLesson(
+            @PathVariable("courseId") Long courseId, 
+            @PathVariable("lessonId") Long lessonId, 
+            HttpSession session,
+            Model model) {
+        
+        Long userId = (Long) session.getAttribute("userId");
+        if(userId == null) userId = 1L;
+
+        // 1. Fetch Course and Curriculum
+        Learning course = learningService.getModuleById(courseId);
+        List<LearningLesson> curriculum = learningLessonDAO.findByCourseId(courseId);
+        
+        LearningLesson currentLesson = null;
+        int currentLessonIndex = 0;
+        
+        // 2. Find the specific lesson
+        if (curriculum != null) {
+            for (int i = 0; i < curriculum.size(); i++) {
+                if (curriculum.get(i).getId().equals(lessonId)) {
+                    currentLesson = curriculum.get(i);
+                    currentLessonIndex = i + 1; // 1-based index for display
+                    break;
+                }
+            }
+        }
+
+        // Safety check: redirect if not found
+        if (course == null || currentLesson == null) return "redirect:/learning/" + courseId;
+
+        // 3. Check completion status
+        boolean isCompleted = progressService.isLessonCompleted(userId, lessonId);
+
+        // 4. Calculate progress dynamically for the player view
+        int completedCount = 0;
+        int totalLessons = (curriculum != null) ? curriculum.size() : 0;
+        
+        if (curriculum != null) {
+            for (LearningLesson l : curriculum) {
+                if (progressService.isLessonCompleted(userId, l.getId())) {
+                    completedCount++;
+                }
+            }
+        }
+        
+        int progressPercent = (totalLessons > 0) ? (int) Math.round(((double) completedCount / totalLessons) * 100) : 0;
+
+        // 5. Add attributes for the view
+        model.addAttribute("course", course); // Necessary for the "Back" button
+        model.addAttribute("lesson", currentLesson);
+        model.addAttribute("currentLessonIndex", currentLessonIndex);
+        model.addAttribute("totalLessons", totalLessons);
+        model.addAttribute("progressPercent", progressPercent);
+        model.addAttribute("lessonCompleted", isCompleted);
+
+        return "learning-play";
+    }
+
+    @PostMapping("/complete-lesson")
+    public String completeLesson(
+            @RequestParam("lessonId") Long lessonId,
+            @RequestParam("courseId") Long courseId,
+            HttpSession session) {
+        
+        Long userId = (Long) session.getAttribute("userId");
+        if(userId == null) userId = 1L;
+
+        // 1. Mark current lesson as complete
+        progressService.markLessonComplete(userId, lessonId);
+
+        // 2. Find the next lesson to redirect to
+        List<LearningLesson> curriculum = learningLessonDAO.findByCourseId(courseId);
+        Long nextLessonId = null;
+        
+        if (curriculum != null) {
+            for(int i = 0; i < curriculum.size(); i++) {
+                if(curriculum.get(i).getId().equals(lessonId)) {
+                    // If there is a next lesson, grab its ID
+                    if(i + 1 < curriculum.size()) {
+                        nextLessonId = curriculum.get(i + 1).getId();
+                    }
+                    break;
+                }
+            }
+        }
+
+        // 3. Redirect
+        if (nextLessonId != null) {
+            return "redirect:/learning/play/" + courseId + "/" + nextLessonId;
+        } else {
+            // Course finished, go back to details
+            return "redirect:/learning/" + courseId;
+        }
     }
 }
