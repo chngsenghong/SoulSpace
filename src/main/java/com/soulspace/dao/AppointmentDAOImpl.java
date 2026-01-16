@@ -17,7 +17,7 @@ public class AppointmentDAOImpl implements AppointmentDAO {
     private EntityManager entityManager;
 
     @Override
-    public void saveAppointment(Appointment appointment) {
+    public void save(Appointment appointment) {
         if (appointment.getId() == null) {
             entityManager.persist(appointment);
         } else {
@@ -26,17 +26,37 @@ public class AppointmentDAOImpl implements AppointmentDAO {
     }
 
     @Override
-    public List<Appointment> getAppointmentsByUser(Long userId) {
-        TypedQuery<Appointment> query = entityManager.createQuery(
-            "FROM Appointment a WHERE a.user.id = :userId ORDER BY a.appointmentDate DESC", 
-            Appointment.class
-        );
-        query.setParameter("userId", userId);
+    public Appointment findById(Long id) {
+        return entityManager.find(Appointment.class, id);
+    }
+
+    @Override
+    public List<Appointment> findByStudent(Long studentId) {
+        String hql = """
+            FROM Appointment a
+            WHERE a.user.id = :studentId
+            ORDER BY a.appointmentDate DESC, a.appointmentTime DESC
+        """;
+
+        TypedQuery<Appointment> query =
+                entityManager.createQuery(hql, Appointment.class);
+        query.setParameter("studentId", studentId);
+
         return query.getResultList();
     }
 
     @Override
-    public Appointment findById(Long id) {
-        return entityManager.find(Appointment.class, id);
+    public List<Appointment> findByProfessional(Long professionalId) {
+        String hql = """
+            FROM Appointment a
+            WHERE a.professional.id = :professionalId
+            ORDER BY a.appointmentDate DESC, a.appointmentTime DESC
+        """;
+
+        TypedQuery<Appointment> query =
+                entityManager.createQuery(hql, Appointment.class);
+        query.setParameter("professionalId", professionalId);
+
+        return query.getResultList();
     }
 }

@@ -37,6 +37,7 @@ public class User {
     
     @Column(name = "email_notifications")
     private boolean emailNotifications;
+    
     @Column(name = "push_notifications")
     private boolean pushNotifications;
 

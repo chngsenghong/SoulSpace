@@ -30,7 +30,6 @@
         <property name="templateResolver" ref="templateResolver"/>
         <property name="enableSpringELCompiler" value="true"/>
     </bean>
-
     <bean class="org.thymeleaf.spring6.view.ThymeleafViewResolver">
         <property name="templateEngine" ref="templateEngine"/>
         <property name="characterEncoding" value="UTF-8"/>

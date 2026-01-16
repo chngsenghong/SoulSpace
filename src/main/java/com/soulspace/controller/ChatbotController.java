@@ -1,18 +1,30 @@
 package com.soulspace.controller;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.soulspace.model.SuggestionCard;
+import com.soulspace.service.GeminiService;
+
+import jakarta.servlet.http.HttpSession;
 
 @Controller
 @RequestMapping("/chatbot")
 public class ChatbotController {
+
+    @Autowired
+    private GeminiService geminiService;
 
     @GetMapping
     public String showChatbot(Model model) {
@@ -47,5 +59,65 @@ public class ChatbotController {
         model.addAttribute("suggestionList", suggestions);
 
         return "chatbot";
+    }
+
+    @PostMapping(value = "/api/ask", consumes = "application/json", produces = "application/json")
+    @ResponseBody
+    public Map<String, String> askBot(@RequestBody Map<String, String> payload, HttpSession session) {
+        String userMessage = payload.get("message");
+        
+        // --- 1. EMERGENCY SAFETY CHECK (Malaysian Context) ---
+        // We check this BEFORE calling the AI to ensure they get local help immediately.
+        if (isEmergency(userMessage)) {
+            // WE RETURN HTML DIRECTLY so it renders bold correctly
+            String malaysianSafetyMsg = 
+                "⚠️ <strong>It sounds like you're going through a difficult time.</strong><br><br>" +
+                "You are not alone. Please contact these Malaysian crisis resources immediately:<br><br>" +
+                "📞 <strong>Befrienders KL:</strong> 03-7627 2929 (24/7, Free)<br>" +
+                "📞 <strong>Talian Kasih:</strong> 15999 (24/7)<br>" +
+                "🚑 <strong>Emergency:</strong> 999<br><br>" +
+                "Please reach out to a professional or go to the nearest hospital.";
+            
+            return Map.of("response", malaysianSafetyMsg);
+        }
+
+        // --- 2. CHAT HISTORY (Context) ---
+        List<Map<String, String>> history = (List<Map<String, String>>) session.getAttribute("chatHistory");
+        if (history == null) {
+            history = new ArrayList<>();
+        }
+
+        // Add User Message
+        Map<String, String> userEntry = new HashMap<>();
+        userEntry.put("role", "user");
+        userEntry.put("content", userMessage);
+        history.add(userEntry);
+
+        // --- 3. GET AI RESPONSE ---
+        String aiResponse = geminiService.getAIResponse(history);
+
+        // Add Bot Response
+        Map<String, String> botEntry = new HashMap<>();
+        botEntry.put("role", "bot");
+        botEntry.put("content", aiResponse);
+        history.add(botEntry);
+
+        // Save session & limit size
+        session.setAttribute("chatHistory", history);
+        if (history.size() > 10) history.subList(0, history.size() - 10).clear();
+
+        return Map.of("response", aiResponse);
+    }
+
+    // Helper to detect crisis keywords
+    private boolean isEmergency(String text) {
+        if (text == null) return false;
+        String lower = text.toLowerCase();
+        return lower.contains("suicide") || 
+               lower.contains("kill myself") || 
+               lower.contains("want to die") || 
+               lower.contains("end my life") ||
+               lower.contains("hurt myself") ||
+               lower.contains("no reason to live");
     }
 }

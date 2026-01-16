@@ -2,17 +2,22 @@ package com.soulspace.controller;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors; // Import this
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import com.soulspace.model.Appointment;
 import com.soulspace.model.Assessment;
+import com.soulspace.model.ForumPost;
 import com.soulspace.model.Recommendation;
 import com.soulspace.service.AppointmentService;
+import com.soulspace.service.ForumService;
 
 import jakarta.servlet.http.HttpSession;
 
@@ -21,15 +26,16 @@ import jakarta.servlet.http.HttpSession;
 public class DashboardController {
 
     private final AppointmentService appointmentService;
+    private final ForumService forumService; 
 
     @Autowired
-    public DashboardController(AppointmentService appointmentService) {
+    public DashboardController(AppointmentService appointmentService, ForumService forumService) {
         this.appointmentService = appointmentService;
+        this.forumService = forumService;
     }
 
     @GetMapping
     public String showDashboard(HttpSession session, Model model) {
-        // 1. Check Login
         if (session.getAttribute("user") == null) {
             return "redirect:/login";
         }
@@ -37,40 +43,55 @@ public class DashboardController {
         String role = (String) session.getAttribute("role");
         Long userId = (Long) session.getAttribute("userId");
 
-        // 2. Logic for Professionals
+        // --- ROLE 1: MENTAL HEALTH PROFESSIONAL ---
         if ("PROFESSIONAL".equals(role)) {
-            // Professionals see all appointments (or specific logic)
-            // Ensure getAllAppointments exists in Service/DAO if used here
-             model.addAttribute("allAppointments", appointmentService.getAppointmentsByUser(userId));
+             List<Appointment> all = appointmentService.getAppointmentsByProfessional(userId);
+             
+             // FIX: Filter to show ONLY 'CONFIRMED' appointments on Dashboard
+             List<Appointment> activeOnly = all.stream()
+                 .filter(a -> a.getStatus() == Appointment.AppointmentStatus.CONFIRMED)
+                 .collect(Collectors.toList());
+
+             model.addAttribute("allAppointments", activeOnly);
         } 
         
-        // 3. Logic for Students (Default)
+        // --- ROLE 2: FACULTY ---
+        else if ("FACULTY".equals(role)) {
+            List<ForumPost> pendingPosts = forumService.getPendingPosts();
+            model.addAttribute("pendingPosts", pendingPosts);
+            
+            List<ForumPost> allPosts = forumService.getAllPosts(); 
+            model.addAttribute("managePosts", allPosts);
+        }
+
+        // --- ROLE 3: STUDENT (Default) ---
         else {
             if (userId != null) {
-                List<Appointment> apps = appointmentService.getAppointmentsByUser(userId);
-                // Simple logic: Take the first one as "Next Session"
+                List<Appointment> apps = appointmentService.getAppointmentsForStudent(userId);
+                // For students, usually show the next CONFIRMED one
                 if (!apps.isEmpty()) {
                     model.addAttribute("nextAppointment", apps.get(0));
                 }
             }
-
-            // Mock Assessment Data (Database table not created yet)
-            model.addAttribute("assessment", new Assessment(
-                "Stress Level Assessment", 
-                "Moderate", 
-                "yellow", 
-                "Nov 3, 2025"
-            ));
+            // Mock Data for Student Dashboard
+            model.addAttribute("assessment", new Assessment("Stress Level Assessment", "Moderate", "yellow", "Nov 3, 2025"));
             
-            // Dynamic Recommendations (Standardized List)
             List<Recommendation> recs = new ArrayList<>();
             recs.add(new Recommendation("Understanding Anxiety", "Learning Module", "15 min", 45, "brain"));
             recs.add(new Recommendation("Morning Meditation", "Exercise", "10 min", 0, "meditation"));
-            recs.add(new Recommendation("Sleep Hygiene", "Article", "5 min", 100, "brain"));
-            
             model.addAttribute("recommendations", recs);
         }
 
         return "dashboard";
+    }
+
+    @PostMapping("/approve-post")
+    public String approvePost(@RequestParam("postId") Long postId, HttpSession session) {
+        String role = (String) session.getAttribute("role");
+        
+        if ("FACULTY".equals(role)) {
+            forumService.approvePost(postId);
+        }
+        return "redirect:/dashboard";
     }
 }

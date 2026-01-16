@@ -8,40 +8,42 @@ import com.soulspace.model.Message;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
-import jakarta.persistence.TypedQuery;
 
 @Repository
 public class MessageDAOImpl implements MessageDAO {
 
     @PersistenceContext
-    private EntityManager entityManager;
+    private EntityManager em;
 
     @Override
-    public void saveMessage(Message message) {
+    public void save(Message message) {
         if (message.getId() == null) {
-            entityManager.persist(message);
+            em.persist(message);
         } else {
-            entityManager.merge(message);
+            em.merge(message);
         }
     }
 
     @Override
-    public List<Message> getMessagesBetween(Long userId1, Long userId2) {
-        // Fetch chat history between two specific people
-        String hql = "FROM Message m WHERE (m.sender.id = :u1 AND m.receiver.id = :u2) " +
-                     "OR (m.sender.id = :u2 AND m.receiver.id = :u1) ORDER BY m.timestamp ASC";
-        TypedQuery<Message> query = entityManager.createQuery(hql, Message.class);
-        query.setParameter("u1", userId1);
-        query.setParameter("u2", userId2);
-        return query.getResultList();
+    public List<Message> findChat(Long userId, Long partnerId) {
+        return em.createQuery(
+                "FROM Message m WHERE " +
+                "(m.sender.id = :u1 AND m.receiver.id = :u2) OR " +
+                "(m.sender.id = :u2 AND m.receiver.id = :u1) " +
+                "ORDER BY m.timestamp ASC",
+                Message.class)
+            .setParameter("u1", userId)
+            .setParameter("u2", partnerId)
+            .getResultList();
     }
 
     @Override
-    public List<Message> getAllMessagesForUser(Long userId) {
-        // Fetch ALL messages for this user to calculate who they talked to
-        String hql = "FROM Message m WHERE m.sender.id = :uid OR m.receiver.id = :uid ORDER BY m.timestamp DESC";
-        TypedQuery<Message> query = entityManager.createQuery(hql, Message.class);
-        query.setParameter("uid", userId);
-        return query.getResultList();
+    public List<Message> findAllForUser(Long userId) {
+        return em.createQuery(
+                "FROM Message m WHERE m.sender.id = :uid OR m.receiver.id = :uid " +
+                "ORDER BY m.timestamp DESC",
+                Message.class)
+            .setParameter("uid", userId)
+            .getResultList();
     }
 }

@@ -32,6 +32,7 @@ public class Comment {
     @Column(columnDefinition = "TEXT")
     private String content;
 
+    @Column(name = "created_at")
     private LocalDateTime createdAt;
 
     // 1. No-Arg Constructor (REQUIRED for Hibernate)

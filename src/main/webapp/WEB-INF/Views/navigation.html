@@ -3,7 +3,6 @@
 <body>
 <div th:fragment="sidebar-fragment">
     <style>
-        /* [Keep your existing styles] */
         .sidebar { width: 16rem; background: white; border-right: 1px solid #e5e7eb; display: flex; flex-direction: column; position: fixed; left: 0; top: 0; bottom: 0; z-index: 50; transition: transform 0.3s ease; }
         @media (max-width: 1024px) { .sidebar { transform: translateX(-100%); } .sidebar.open { transform: translateX(0); box-shadow: 0 0 15px rgba(0,0,0,0.1); } }
         .sidebar-header { padding: 1.5rem; border-bottom: 1px solid #f3f4f6; }
@@ -67,10 +66,17 @@
                             <span>Messages</span>
                         </a>
                     </li>
-                    <li th:if="${session.role != 'PROFESSIONAL'}">
+                    <li th:if="${session.role == 'STUDENT' or session.role == null}">
                         <a th:href="@{/booking}" class="nav-link">
                             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
                             <span>Book Appointment</span>
+                        </a>
+                    </li>
+
+                    <li th:if="${session.role == 'PROFESSIONAL'}">
+                        <a th:href="@{/booking/professional}" class="nav-link">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                            <span>My Schedule</span>
                         </a>
                     </li>
                     <li>

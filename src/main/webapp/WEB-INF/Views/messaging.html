@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>SoulSpace - Secure Messaging</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f9fafb;
+            color: #111827;
+            height: 100vh;
+        }
+
+        .main-content {
+            margin-left: 16rem;
+            padding: 2rem;
+        }
+
+        @media (max-width: 1024px) {
+            .main-content { margin-left: 0; }
+        }
+
+        h1 { font-size: 1.75rem; margin-bottom: .25rem; }
+        .subtitle { color: #6b7280; margin-bottom: 1.5rem; }
+
+        /* Security banner */
+        .security-banner {
+            background: #eff6ff;
+            color: #1e40af;
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            margin-bottom: 1.5rem;
+            font-size: 0.9rem;
+            border: 1px solid #bfdbfe;
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            background: #f3f4f6;
+            border-radius: 999px;
+            padding: 0.25rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 0.6rem;
+            background: none;
+            border: none;
+            font-weight: 500;
+            cursor: pointer;
+            border-radius: 999px;
+            color: #374151;
+        }
+
+        .tab-btn.active {
+            background: white;
+            box-shadow: 0 1px 3px rgba(0,0,0,.1);
+        }
+
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        /* Cards */
+        .card {
+            background: white;
+            border-radius: 0.75rem;
+            border: 1px solid #e5e7eb;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        /* Active chat layout */
+        .chat-layout {
+            display: grid;
+            grid-template-columns: 320px 1fr;
+            height: 65vh;
+            border-radius: 0.75rem;
+            overflow: hidden;
+            border: 1px solid #e5e7eb;
+        }
+
+        .chat-list {
+            border-right: 1px solid #e5e7eb;
+            overflow-y: auto;
+        }
+
+        .chat-item {
+            padding: 1rem;
+            cursor: pointer;
+            border-bottom: 1px solid #f3f4f6;
+        }
+
+        .chat-item.active {
+            background: #eff6ff;
+            border-left: 3px solid #2563eb;
+        }
+
+        .chat-window {
+            display: flex;
+            flex-direction: column;
+            background: #f9fafb;
+        }
+
+        .chat-header {
+            padding: 1rem;
+            background: white;
+            border-bottom: 1px solid #e5e7eb;
+            font-weight: 600;
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 1.5rem;
+            overflow-y: auto;
+        }
+
+        .msg {
+            max-width: 70%;
+            padding: 0.75rem 1rem;
+            border-radius: 1rem;
+            margin-bottom: 0.75rem;
+            font-size: 0.95rem;
+        }
+
+        .sent {
+            background: #2563eb;
+            color: white;
+            margin-left: auto;
+        }
+
+        .received {
+            background: white;
+            border: 1px solid #e5e7eb;
+        }
+
+        .chat-input {
+            padding: 1rem;
+            background: white;
+            border-top: 1px solid #e5e7eb;
+            display: flex;
+            gap: .5rem;
+        }
+
+        .chat-input input {
+            flex: 1;
+            padding: .5rem 1rem;
+            border-radius: 999px;
+            border: 1px solid #d1d5db;
+        }
+
+        .chat-input button {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: none;
+            background: #2563eb;
+            color: white;
+            cursor: pointer;
+        }
+
+        /* Professional cards */
+        .prof-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px,1fr));
+            gap: 1rem;
+        }
+
+        .start-btn {
+            width: 100%;
+            margin-top: 1rem;
+            padding: 0.6rem;
+            background: black;
+            color: white;
+            border-radius: 0.5rem;
+            border: none;
+            cursor: pointer;
+        }
+
+        .offline {
+            background: #9ca3af;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+
+<div th:replace="~{navigation :: sidebar-fragment}"></div>
+
+<main class="main-content">
+
+    <h1>Secure Messaging</h1>
+    <p class="subtitle">Private communication with mental health professionals</p>
+
+    <div class="security-banner">
+        🔒 All conversations are encrypted and confidential
+    </div>
+
+    <div class="tabs">
+        <button class="tab-btn" 
+                th:classappend="${selectedTab == 'active'} ? 'active'"
+                onclick="switchTab('active', this)">Active Chats</button>
+        
+        <button class="tab-btn" 
+                th:classappend="${selectedTab == 'history'} ? 'active'"
+                onclick="switchTab('history', this)">Chat History</button>
+        
+        <button class="tab-btn" onclick="switchTab('new', this)">Start New Chat</button>
+    </div>
+
+    <div id="active" class="tab-content" th:classappend="${selectedTab == 'active'} ? 'active'">
+        <div class="chat-layout">
+            <div class="chat-list">
+                <div th:each="convo : ${conversations}"
+                     class="chat-item"
+                     th:if="${convo.key != null}"
+                     th:classappend="${convo.key.id == activeChatId} ? 'active' : ''"
+                     th:onclick="|window.location='@{/messaging(chatWith=${convo.key.id})}'|">
+                    
+                    <strong th:text="${convo.key.firstName + ' ' + convo.key.lastName}">Name</strong>
+                    <p style="font-size:.85rem;color:#6b7280;"
+                       th:if="${convo.value != null}" th:text="${convo.value.content}">Last message...</p>
+                    <p style="font-size:.85rem;color:#2563eb;"
+                       th:if="${convo.value == null}">New Conversation</p>
+                </div>
+                <div th:if="${conversations == null or conversations.isEmpty()}" style="padding:1rem; color:#6b7280; text-align:center;">
+                    No active chats.
+                </div>
+            </div>
+
+            <div class="chat-window">
+                <div th:if="${activeChatId == null}" style="display:flex; align-items:center; justify-content:center; height:100%; color:#9ca3af;">
+                    Select a conversation
+                </div>
+
+                <div th:if="${activeChatId != null}" style="display:flex; flex-direction:column; height:100%;">
+                    
+                    <div class="chat-header">
+                        <span th:if="${activePartner != null}" 
+                              th:text="${activePartner.firstName + ' ' + activePartner.lastName}">User</span>
+                        
+                        <form th:action="@{/messaging/end}" method="post" 
+                              style="margin-left:auto;" 
+                              th:if="${chatStatus == 'ACTIVE'}"
+                              onsubmit="return confirm('End this chat? It will move to History.');">
+                            <input type="hidden" name="partnerId" th:value="${activeChatId}">
+                            <button type="submit" style="background:#fee2e2; color:#991b1b; border:1px solid #fecaca; padding:0.4rem 0.8rem; border-radius:0.5rem; cursor:pointer; font-weight:600;">End Chat</button>
+                        </form>
+                    </div>
+
+                    <div class="chat-messages">
+                        <div th:each="msg : ${activeMessages}"
+                             th:if="${msg.sender != null}" 
+                             th:class="'msg ' + (${msg.sender.id == session.userId} ? 'sent' : 'received')"
+                             th:text="${msg.content}">
+                        </div>
+                    </div>
+
+                    <form class="chat-input" th:action="@{/messaging/send}" method="post" th:if="${chatStatus == 'ACTIVE'}">
+                        <input type="hidden" name="receiverId" th:value="${activeChatId}">
+                        <input type="text" name="content" placeholder="Type a message..." required autocomplete="off">
+                        <button type="submit">➤</button>
+                    </form>
+
+                    <div th:if="${chatStatus == 'ARCHIVED'}" 
+                        style="padding:1.5rem; text-align:center; background:#f9fafb; border-top:1px solid #e5e7eb;">
+                        
+                        <p style="color:#6b7280; margin-bottom:1rem; font-size:0.9rem;">
+                            This conversation is currently archived.
+                        </p>
+                        
+                        <form th:action="@{/messaging/restart}" method="post">
+                            <input type="hidden" name="partnerId" th:value="${activeChatId}">
+                            <button type="submit" 
+                                    style="background:#2563eb; color:white; border:none; padding:0.6rem 1.2rem; border-radius:0.5rem; cursor:pointer; font-weight:600;">
+                                Start New Chat
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="history" class="tab-content" th:classappend="${selectedTab == 'history'} ? 'active'">
+        <div class="chat-layout">
+            <div class="chat-list">
+                <div th:each="convo : ${historyConversations}"
+                     class="chat-item"
+                     th:if="${convo.key != null}"
+                     th:classappend="${convo.key.id == activeChatId} ? 'active' : ''"
+                     th:onclick="|window.location='@{/messaging(chatWith=${convo.key.id})}'|">
+                    <strong th:text="${convo.key.firstName + ' ' + convo.key.lastName}" style="color:#6b7280;">Name</strong>
+                    <span style="font-size:0.7rem; background:#f3f4f6; padding:2px; margin-left:5px;">Archived</span>
+                    <p style="font-size:.85rem;color:#9ca3af;" th:if="${convo.value != null}" th:text="${convo.value.content}"></p>
+                </div>
+                <div th:if="${historyConversations == null or historyConversations.isEmpty()}" style="padding:1rem; color:#9ca3af; text-align:center;">
+                    No archived chats.
+                </div>
+            </div>
+
+            <div class="chat-window">
+                 <div th:if="${activeChatId == null}" style="display:flex; align-items:center; justify-content:center; height:100%; color:#9ca3af;">
+                    Select an archived chat to view
+                </div>
+                <div th:if="${activeChatId != null}" style="display:flex; flex-direction:column; height:100%;">
+                    <div class="chat-header" style="background:#f3f4f6;">
+                         <span th:if="${activePartner != null}" th:text="${activePartner.firstName + ' ' + activePartner.lastName}">User</span>
+                         <span style="margin-left:auto; font-size:0.8rem; color:#6b7280;">Read Only Mode</span>
+                    </div>
+                    <div class="chat-messages">
+                        <div th:each="msg : ${activeMessages}"
+                             th:if="${msg.sender != null}" 
+                             th:class="'msg ' + (${msg.sender.id == session.userId} ? 'sent' : 'received')"
+                             th:text="${msg.content}">
+                        </div>
+                    </div>
+                    <div style="padding:1rem; text-align:center; color:#9ca3af; background:#f9fafb; border-top:1px solid #e5e7eb;">
+                        Archived (Read Only)
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="new" class="tab-content">
+        <div class="prof-grid">
+            <div class="card" th:each="prof : ${professionals}">
+                <strong th:text="${prof.firstName + ' ' + prof.lastName}">Dr. Name</strong>
+                <p style="color:#6b7280;font-size:.85rem;">Clinical Professional</p>
+                <button class="start-btn" 
+                        th:onclick="|window.location='@{/messaging(chatWith=${prof.id})}'|">
+                    Start Chat
+                </button>
+            </div>
+        </div>
+    </div>
+
+</main>
+
+<script>
+    function switchTab(id, btn) {
+        document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+        btn.classList.add('active');
+    }
+</script>
+
+</body>
+</html>

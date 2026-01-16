@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>SoulSpace - Dashboard</title>
+    <style>
+        /* --- GLOBAL & LAYOUT --- */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f9fafb;
+            color: #1a1a1a;
+            min-height: 100vh;
+        }
+
+        .main-content {
+            margin-left: 16rem;
+            min-height: 100vh;
+            padding: 2rem;
+            transition: margin-left 0.3s ease;
+        }
+
+        @media (max-width: 1024px) {
+            .main-content { margin-left: 0; padding: 1.5rem; }
+        }
+
+        /* --- DASHBOARD HEADER --- */
+        .welcome-section { margin-bottom: 2rem; }
+        .welcome-title { font-size: 1.875rem; font-weight: 600; color: #111827; margin-bottom: 0.5rem; }
+        .welcome-subtitle { color: #6b7280; }
+
+        /* --- SECTION 1: STATUS CARDS --- */
+        .card-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; margin-bottom: 2.5rem; }
+        
+        .info-card { background: white; padding: 1.5rem; border-radius: 1rem; border: 1px solid #e5e7eb; box-shadow: 0 1px 2px rgba(0,0,0,0.05); transition: transform 0.2s; }
+        .info-card:hover { transform: translateY(-2px); border-color: #3b82f6; }
+        .info-card h3 { margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; font-size: 1.125rem; font-weight: 600; }
+        .btn-outline { display: inline-block; margin-top: 1rem; padding: 0.5rem 1rem; border: 1px solid #d1d5db; border-radius: 0.5rem; text-decoration: none; color: #374151; font-size: 0.875rem; font-weight: 500; transition: all 0.2s; }
+        .btn-outline:hover { background: #f9fafb; border-color: #9ca3af; }
+
+        /* --- SECTION 2: QUICK ACTIONS --- */
+        .quick-actions { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2.5rem; }
+        .action-card { background: white; padding: 1.25rem; border-radius: 1rem; border: 1px solid #e5e7eb; transition: all 0.2s; display: flex; flex-direction: column; gap: 0.75rem; text-decoration: none; color: inherit; }
+        .action-card:hover { transform: translateY(-4px); box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); border-color: #3b82f6; }
+        .icon-box { width: 2.5rem; height: 2.5rem; border-radius: 0.5rem; display: flex; align-items: center; justify-content: center; }
+        .bg-blue { background: #eff6ff; color: #3b82f6; }
+        .bg-purple { background: #f3e8ff; color: #9333ea; }
+        .bg-orange { background: #fff7ed; color: #f97316; }
+        .card-title { font-weight: 600; font-size: 1rem; }
+        .card-desc { color: #6b7280; font-size: 0.8rem; line-height: 1.4; }
+
+        /* --- PROFESSIONAL TABLE --- */
+        .appt-table-container { background: white; border-radius: 1rem; border: 1px solid #e5e7eb; overflow: hidden; margin-bottom: 2rem; }
+        .appt-table { width: 100%; border-collapse: collapse; }
+        .appt-table th { background: #f9fafb; padding: 1rem 1.5rem; text-align: left; font-size: 0.75rem; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1px solid #e5e7eb; }
+        .appt-table td { padding: 1rem 1.5rem; border-bottom: 1px solid #f3f4f6; color: #374151; font-size: 0.875rem; }
+        .status-badge { display: inline-flex; padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 500; background: #ecfdf5; color: #059669; }
+        
+        /* --- RECOMMENDATIONS (Bottom) --- */
+        .rec-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; }
+        .rec-card { background: white; padding: 1.25rem; border-radius: 1rem; border: 1px solid #e5e7eb; display: flex; gap: 1rem; align-items: flex-start; text-decoration: none; color: inherit; transition: border-color 0.2s; }
+        .rec-card:hover { border-color: #3b82f6; }
+        .rec-icon { flex-shrink: 0; width: 2.5rem; height: 2.5rem; background: #f0f9ff; color: #0284c7; border-radius: 0.5rem; display: flex; align-items: center; justify-content: center; }
+        .progress-bar { height: 0.4rem; background: #f3f4f6; border-radius: 9999px; overflow: hidden; margin-top: 0.5rem; }
+        .progress-fill { height: 100%; background: #3b82f6; border-radius: 9999px; }
+    
+        .alert-box { border-left: 4px solid #f59e0b; background: #fffbeb; }
+
+        /* --- FACULTY / MODERATION STYLES --- */
+        .faculty-stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 1rem;
+            border: 1px solid #e5e7eb;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #111827;
+            margin-bottom: 0.25rem;
+        }
+
+        .stat-label {
+            color: #6b7280;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        /* Alert Box for Moderation Queue */
+        .moderation-container {
+            background: white;
+            border-radius: 1rem;
+            border: 1px solid #e5e7eb;
+            border-left: 5px solid #f59e0b; /* Orange warning strip */
+            overflow: hidden;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        }
+
+        .moderation-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid #f3f4f6;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #fffbeb; /* Light yellow background */
+        }
+
+        .risk-badge {
+            background: #fef2f2;
+            color: #991b1b;
+            border: 1px solid #fecaca;
+            padding: 0.25rem 0.6rem;
+            border-radius: 0.375rem;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        /* Action Buttons */
+        .btn-action-group {
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        .btn-chat {
+            text-decoration: none;
+            background: white;
+            border: 1px solid #d1d5db;
+            color: #374151;
+            padding: 0.4rem 0.8rem;
+            border-radius: 0.5rem;
+            font-size: 0.85rem;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+        .btn-chat:hover { background: #f9fafb; border-color: #9ca3af; }
+
+        .btn-approve {
+            border: none;
+            background: #059669; /* Green */
+            color: white;
+            padding: 0.4rem 0.8rem;
+            border-radius: 0.5rem;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+        .btn-approve:hover { background: #047857; }
+    </style>
+</head>
+<body>
+
+    <div th:replace="~{navigation :: sidebar-fragment}"></div>
+
+    <main class="main-content">
+        
+        <div class="welcome-section">
+            <h1 class="welcome-title" th:text="'Welcome back, ' + ${session.user}">Welcome back</h1>
+            <p class="welcome-subtitle">
+                <span th:if="${session.role == 'PROFESSIONAL'}">Here is your appointment schedule.</span>
+                <span th:if="${session.role == 'FACULTY'}">Here are the forum alerts requiring your attention.</span>
+                <span th:if="${session.role == 'STUDENT'}">Here is your daily wellness overview.</span>
+            </p>
+        </div>
+
+        <th:block th:switch="${session.role}">
+            
+            <th:block th:case="'PROFESSIONAL'">
+                <div class="appt-table-container">
+                    <table class="appt-table">
+                        <thead>
+                            <tr>
+                                <th>Client Name</th>
+                                <th>Date</th>
+                                <th>Time</th>
+                                <th>Type</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="appt : ${allAppointments}">
+                                <td style="font-weight: 500;" th:text="${appt.user.firstName} + ' ' + ${appt.user.lastName}">Name</td>
+                                <td th:text="${appt.appointmentDate}">Date</td>
+                                <td th:text="${appt.appointmentTime}">Time</td>
+                                <td th:text="${appt.type}">Type</td>
+                                <td><span class="status-badge" th:text="${appt.status}">Status</span></td>
+                               <td>
+                                    <a th:href="@{/booking/professional/appointment/{id}(id=${appt.id})}" 
+                                    style="color:#2563eb; text-decoration:none; font-weight:600;">
+                                    Details
+                                    </a>
+                                </td>
+                            </tr>
+                            <tr th:if="${#lists.isEmpty(allAppointments)}">
+                                <td colspan="6" style="text-align:center; padding: 3rem; color:#6b7280;">No upcoming appointments found.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </th:block>
+
+            <th:block th:case="'FACULTY'">
+                <div class="faculty-stats-grid">
+                    <div class="stat-card" style="border-left: 4px solid #f59e0b;"> <span class="stat-value" th:text="${#lists.size(pendingPosts)}">0</span>
+                        <span class="stat-label">Pending Reviews</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-value">24</span> <span class="stat-label">Students Monitored</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-value">12</span> <span class="stat-label">Resolved This Week</span>
+                    </div>
+                </div>
+
+                <div class="moderation-container">
+                    <div class="moderation-header">
+                        <div>
+                            <h3 style="font-size: 1.125rem; font-weight: 700; color: #92400e; margin-bottom: 0.25rem;">
+                                ⚠ Priority Attention Required
+                            </h3>
+                            <p style="color: #b45309; font-size: 0.9rem;">
+                                The following posts contain keywords that may indicate distress.
+                            </p>
+                        </div>
+                        <span style="background: white; border: 1px solid #fcd34d; color: #b45309; padding: 0.5rem 1rem; border-radius: 2rem; font-weight: 600; font-size: 0.9rem;"
+                            th:text="${#lists.size(pendingPosts)} + ' Items Pending'">
+                            0 Items Pending
+                        </span>
+                    </div>
+
+                    <table class="appt-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 25%;">Student Info</th>
+                                <th style="width: 45%;">Post Content Preview</th>
+                                <th style="width: 15%;">Risk Level</th>
+                                <th style="width: 15%;">Intervention</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="post : ${pendingPosts}">
+                                <td style="vertical-align: top;">
+                                    <div style="display: flex; align-items: center; gap: 0.75rem;">
+                                        <div style="width: 2.5rem; height: 2.5rem; background: #e0f2fe; color: #0369a1; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.9rem;"
+                                            th:text="${post.author.initials}">JD</div>
+                                        <div>
+                                            <div style="font-weight: 600; color: #111827;" th:text="${post.author.firstName} + ' ' + ${post.author.lastName}">Name</div>
+                                            <div style="font-size: 0.8rem; color: #6b7280;" th:text="${post.timeAgo}">2h ago</div>
+                                        </div>
+                                    </div>
+                                </td>
+
+                                <td style="vertical-align: top;">
+                                    <div style="margin-bottom: 0.5rem;">
+                                        <span style="font-weight: 600; color: #1f2937; display: block;" th:text="${post.title}">Title</span>
+                                        <span style="background: #f3f4f6; color: #4b5563; padding: 0.1rem 0.5rem; border-radius: 4px; font-size: 0.7rem; font-weight: 500;" 
+                                            th:text="${post.category}">Category</span>
+                                    </div>
+                                    <p style="font-size: 0.9rem; color: #4b5563; line-height: 1.5; background: #f9fafb; padding: 0.75rem; border-radius: 0.5rem; border: 1px solid #f3f4f6;" 
+                                        th:text="${post.content}">
+                                        Content goes here...
+                                    </p>
+                                </td>
+
+                                <td style="vertical-align: top;">
+                                    <span class="risk-badge">
+                                        <svg width="12" height="12" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path></svg>
+                                        High Alert
+                                    </span>
+                                    <div style="margin-top: 0.5rem; font-size: 0.75rem; color: #6b7280;">
+                                        Detected keyword match
+                                    </div>
+                                </td>
+
+                                <td style="vertical-align: top;">
+                                    <div class="btn-action-group">
+                                        <a th:href="@{/messaging(chatWith=${post.author.id})}" class="btn-chat" title="Message Student">
+                                            Chat
+                                        </a>
+                                        
+                                        <form th:action="@{/dashboard/approve-post}" method="post">
+                                            <input type="hidden" name="postId" th:value="${post.id}">
+                                            <button type="submit" class="btn-approve" title="Mark as Safe">
+                                                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                                                Safe
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+
+                            <tr th:if="${#lists.isEmpty(pendingPosts)}">
+                                <td colspan="4" style="text-align: center; padding: 4rem 2rem;">
+                                    <div style="background: #ecfdf5; width: 4rem; height: 4rem; border-radius: 50%; color: #059669; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem auto;">
+                                        <svg width="32" height="32" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                    </div>
+                                    <h3 style="color: #111827; font-weight: 600; margin-bottom: 0.5rem;">All Clear!</h3>
+                                    <p style="color: #6b7280;">There are no posts requiring verification at this time.</p>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="appt-table-container" style="margin-top: 3rem;">
+                    <div style="padding: 1.5rem; border-bottom: 1px solid #e5e7eb; display: flex; justify-content: space-between; align-items: center;">
+                        <h3 style="font-size: 1.1rem; font-weight: 600; color: #111827;">Forum Database Management</h3>
+                        <span style="color: #6b7280; font-size: 0.9rem;">Manage all live content</span>
+                    </div>
+
+                    <table class="appt-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Status</th>
+                                <th>Post Details</th>
+                                <th>Author</th>
+                                <th>Manage</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="post : ${managePosts}">
+                                <td style="color: #6b7280; font-family: monospace;" th:text="'#' + ${post.id}">#101</td>
+                                
+                                <td>
+                                    <span th:if="${post.status.name() == 'PUBLISHED'}" 
+                                        style="background: #ecfdf5; color: #059669; padding: 0.2rem 0.6rem; border-radius: 99px; font-size: 0.75rem; font-weight: 700;">LIVE</span>
+                                    <span th:if="${post.status.name() == 'PENDING_REVIEW'}" 
+                                        style="background: #fffbeb; color: #b45309; padding: 0.2rem 0.6rem; border-radius: 99px; font-size: 0.75rem; font-weight: 700;">PENDING</span>
+                                </td>
+
+                                <td style="max-width: 400px;">
+                                    <div style="font-weight: 600; color: #111827;" th:text="${post.title}">Title</div>
+                                    <div style="font-size: 0.85rem; color: #6b7280; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" 
+                                        th:text="${post.content}">Content...</div>
+                                </td>
+
+                                <td th:text="${post.author.firstName} + ' ' + ${post.author.lastName}">Author Name</td>
+
+                                <td>
+                                    <div style="display: flex; gap: 0.5rem;">
+                                        <button type="button"
+                                                th:data-id="${post.id}"
+                                                th:data-title="${post.title}"
+                                                th:data-category="${post.category}"
+                                                th:data-content="${post.content}"
+                                                onclick="openAdminEditModal(this)"
+                                                style="background: white; border: 1px solid #d1d5db; color: #374151; padding: 0.4rem 0.8rem; border-radius: 0.375rem; font-size: 0.85rem; font-weight: 600; cursor: pointer;">
+                                            Edit
+                                        </button>
+
+                                        <form th:action="@{/forum}" method="post" onsubmit="return confirm('ADMIN ACTION: Are you sure you want to permanently delete this user\'s post?');">
+                                            <input type="hidden" name="action" value="delete">
+                                            <input type="hidden" name="id" th:value="${post.id}">
+                                            <button type="submit" 
+                                                    style="background: #fee2e2; border: 1px solid #fecaca; color: #991b1b; padding: 0.4rem 0.8rem; border-radius: 0.375rem; font-size: 0.85rem; font-weight: 600; cursor: pointer;">
+                                                Delete
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div id="adminEditModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); align-items:center; justify-content:center; z-index:200;">
+                    <div style="background:white; padding:2rem; border-radius:1rem; width:90%; max-width:600px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                            <h2 style="font-size: 1.25rem; font-weight: 700;">Admin Edit Post</h2>
+                            <button onclick="document.getElementById('adminEditModal').style.display='none'" style="background:none; border:none; font-size:1.5rem; cursor:pointer;">&times;</button>
+                        </div>
+                        
+                        <form th:action="@{/forum}" method="post">
+                            <input type="hidden" name="action" value="update">
+                            <input type="hidden" id="edit-post-id" name="id">
+                            
+                            <div style="margin-bottom: 1rem;">
+                                <label style="display:block; margin-bottom:0.5rem; font-weight:600; font-size:0.9rem;">Title</label>
+                                <input id="edit-post-title" style="width:100%; padding:0.75rem; border:1px solid #d1d5db; border-radius:0.5rem;" type="text" name="title" required>
+                            </div>
+
+                            <div style="margin-bottom: 1rem;">
+                                <label style="display:block; margin-bottom:0.5rem; font-weight:600; font-size:0.9rem;">Category</label>
+                                <input id="edit-post-category" style="width:100%; padding:0.75rem; border:1px solid #d1d5db; border-radius:0.5rem;" type="text" name="category">
+                            </div>
+                            
+                            <div style="margin-bottom: 1.5rem;">
+                                <label style="display:block; margin-bottom:0.5rem; font-weight:600; font-size:0.9rem;">Content</label>
+                                <textarea id="edit-post-content" style="width:100%; padding:0.75rem; border:1px solid #d1d5db; border-radius:0.5rem; min-height:150px; font-family: inherit;" name="content" required></textarea>
+                            </div>
+                            
+                            <div style="display:flex; justify-content:flex-end; gap:1rem;">
+                                <button type="button" onclick="document.getElementById('adminEditModal').style.display='none'" 
+                                        style="padding:0.6rem 1.2rem; border:1px solid #d1d5db; background:white; border-radius:0.5rem; cursor:pointer; font-weight:500;">
+                                    Cancel
+                                </button>
+                                <button type="submit" 
+                                        style="padding:0.6rem 1.2rem; background:#3b82f6; color:white; border:none; border-radius:0.5rem; cursor:pointer; font-weight:600;">
+                                    Save Admin Changes
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </th:block>
+
+            <th:block th:case="*">
+                <div class="card-grid">
+                    <div class="info-card">
+                        <h3>
+                            <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                            Next Session
+                        </h3>
+                        <div th:if="${nextAppointment != null}">
+                            <p style="font-weight: 500;" th:text="${nextAppointment.professionalName}">Dr. Sarah</p>
+                            <p style="color: #6b7280; font-size: 0.9rem;" th:text="${nextAppointment.appointmentDate} + ' at ' + ${nextAppointment.appointmentTime}">Date</p>
+                        </div>
+                        <div th:unless="${nextAppointment != null}" style="color: #6b7280;">No upcoming sessions scheduled.</div>
+                        <a th:href="@{/booking}" class="btn-outline">Manage Booking</a>
+                    </div>
+
+                    <div class="info-card" style="background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); border-color: #bae6fd;">
+                        <h3 style="color: #0369a1;">
+                            <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                            Wellness Check
+                        </h3>
+                        <p style="font-weight: 500; color: #0c4a6e;" th:text="${assessment.title}">Stress Assessment</p>
+                        <p style="color: #075985; font-size: 0.9rem; margin-top:0.25rem;">Result: <span th:text="${assessment.result}">Moderate</span></p>
+                        <a href="#" class="btn-outline" style="background: white; border-color: white; color: #0284c7;">Take New</a>
+                    </div>
+                </div>
+
+                <div class="quick-actions">
+                    <a th:href="@{/chatbot}" class="action-card">
+                        <div class="icon-box bg-blue">
+                             <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path></svg>
+                        </div>
+                        <div>
+                            <div class="card-title">AI Guide</div>
+                            <div class="card-desc">Chat for instant support</div>
+                        </div>
+                    </a>
+                    <a th:href="@{/learning}" class="action-card">
+                        <div class="icon-box bg-purple">
+                            <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
+                        </div>
+                        <div>
+                            <div class="card-title">Learning</div>
+                            <div class="card-desc">Access courses</div>
+                        </div>
+                    </a>
+                    <a th:href="@{/booking}" class="action-card">
+                        <div class="icon-box bg-orange">
+                            <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                        </div>
+                        <div>
+                            <div class="card-title">Book</div>
+                            <div class="card-desc">Find a professional</div>
+                        </div>
+                    </a>
+                </div>
+
+                <div class="rec-grid">
+                    <a th:href="@{/learning}" class="rec-card" th:each="rec : ${recommendations}">
+                        <div class="rec-icon">
+                             <th:block th:if="${rec.iconType == 'brain'}">
+                                <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path></svg>
+                             </th:block>
+                             <th:block th:unless="${rec.iconType == 'brain'}">
+                                <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>
+                             </th:block>
+                        </div>
+                        <div style="flex:1;">
+                            <h4 th:text="${rec.title}">Title</h4>
+                            <div style="font-size:0.875rem; color:#6b7280; margin-bottom:0.5rem;" th:text="${rec.type} + ' • ' + ${rec.duration}">Details</div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" th:style="'width: ' + ${rec.progress} + '%;'"></div>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+            </th:block>
+
+        </th:block>
+    </main>
+
+    <script>
+        function openAdminEditModal(button) {
+            // 1. Get data from the clicked button's attributes
+            const id = button.getAttribute('data-id');
+            const title = button.getAttribute('data-title');
+            const category = button.getAttribute('data-category');
+            const content = button.getAttribute('data-content');
+
+            // 2. Populate the Modal Inputs
+            document.getElementById('edit-post-id').value = id;
+            document.getElementById('edit-post-title').value = title;
+            document.getElementById('edit-post-category').value = category;
+            document.getElementById('edit-post-content').value = content;
+
+            // 3. Show the Modal
+            document.getElementById('adminEditModal').style.display = 'flex';
+        }
+    </script>
+</body>
+</html>
