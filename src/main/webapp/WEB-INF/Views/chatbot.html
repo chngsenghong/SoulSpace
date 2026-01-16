@@ -12,7 +12,7 @@
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { 
             font-family: 'Inter', -apple-system, sans-serif; 
-            background: white; /* Changed to white for seamless look */
+            background: white; 
             height: 100vh; 
             overflow: hidden; 
             display: flex; 
@@ -21,12 +21,12 @@
         
         /* Layout handling for Sidebar */
         .main-content {
-            margin-left: 16rem; /* Matches your sidebar width */
+            margin-left: 16rem; 
             flex: 1;
             display: flex;
             flex-direction: column;
             height: 100%;
-            background: white; /* Seamless background */
+            background: white; 
         }
         
         @media (max-width: 1024px) {
@@ -38,9 +38,9 @@
             flex: 1;
             display: flex;
             flex-direction: column;
-            width: 100%;       /* Forces full width */
-            max-width: none;   /* REMOVED the 900px limit */
-            margin: 0;         /* REMOVED auto margins */
+            width: 100%;       
+            max-width: none;   
+            margin: 0;         
             background: white;
             height: 100%;
             position: relative;
@@ -88,7 +88,7 @@
         }
 
         .message { 
-            max-width: 70%; /* Kept restricted so text is readable */
+            max-width: 70%; 
             padding: 1rem 1.25rem; 
             border-radius: 1rem; 
             font-size: 0.95rem; 
@@ -118,7 +118,7 @@
         .suggestions-container {
             margin-top: 1rem;
             display: flex;
-            flex-wrap: wrap; /* Allows cards to wrap nicely on full screen */
+            flex-wrap: wrap;
             gap: 1rem;
         }
 
@@ -130,7 +130,7 @@
             cursor: pointer;
             transition: all 0.2s ease;
             text-align: left;
-            flex: 1 1 250px; /* Cards will stretch to fill space */
+            flex: 1 1 250px; 
             max-width: 400px;
         }
 
@@ -151,7 +151,6 @@
         .card-title { font-weight: 600; font-size: 0.9rem; color: #111827; margin-bottom: 0.25rem; }
         .card-desc { font-size: 0.8rem; color: #6b7280; }
 
-        /* --- 6. INPUT AREA --- */
         .input-area { 
             padding: 1.5rem 2rem; 
             background: white; 
@@ -159,9 +158,9 @@
             display: flex; 
             gap: 1rem; 
             align-items: center;
-            max-width: 1000px; /* Optional: Keep input centered */
+            max-width: 1000px; 
             width: 100%;
-            margin: 0 auto; /* Centers the input bar only */
+            margin: 0 auto;
         }
         
         .chat-input { 
@@ -188,7 +187,6 @@
         }
         .send-btn:hover { background: #000; }
 
-        /* --- 7. LOADING ANIMATION --- */
         .typing-indicator { display: flex; gap: 4px; padding: 0.5rem 0; }
         .dot { width: 6px; height: 6px; background: #9ca3af; border-radius: 50%; animation: bounce 1.4s infinite ease-in-out; }
         .dot:nth-child(1) { animation-delay: -0.32s; }
@@ -261,15 +259,12 @@
             const container = document.getElementById('messages');
             const suggestionGrid = document.getElementById('suggestion-grid');
             
-            // Determine if text comes from input or a card click
             const textToSend = optionalText ? optionalText : input.value.trim();
 
             if(!textToSend) return;
 
-            // 2. Hide suggestions if they exist
             if(suggestionGrid) suggestionGrid.style.display = 'none';
 
-            // 3. Show User Message
             const userDiv = document.createElement('div');
             userDiv.className = 'message user';
             userDiv.innerText = textToSend;
@@ -278,19 +273,14 @@
             input.value = ""; 
             container.scrollTop = container.scrollHeight;
 
-            // 4. Show "Thinking..." Animation
             const loadingDiv = document.createElement('div');
             loadingDiv.className = 'message bot';
             loadingDiv.id = "loading-msg";
-            loadingDiv.innerHTML = "Thinking..."; // Simple loading text
+            loadingDiv.innerHTML = "Thinking..."; 
             container.appendChild(loadingDiv);
             container.scrollTop = container.scrollHeight;
 
             try {
-                // 5. CALL THE JAVA BACKEND
-                // IMPORTANT: Make sure this URL matches your Controller!
-                // If your app runs at localhost:8080/soulspace, keep '/soulspace/...'
-                // If it runs at localhost:8080/, remove '/soulspace'
                 const response = await fetch('/soulspace/chatbot/api/ask', { 
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -303,22 +293,18 @@
 
                 const data = await response.json();
 
-                // 6. Show Real Gemini Response
-                container.removeChild(loadingDiv); // Remove "Thinking..."
+                container.removeChild(loadingDiv);
                 
                 const botDiv = document.createElement('div');
                 botDiv.className = 'message bot';
-                // Replace newlines with <br> for better formatting
                 botDiv.innerHTML = data.response.replace(/\n/g, '<br>'); 
                 container.appendChild(botDiv);
 
             } catch (error) {
                 console.error("Error:", error);
-                // Remove loading text if it exists
                 const loader = document.getElementById('loading-msg');
                 if(loader) container.removeChild(loader);
-                
-                // Show Error Message
+
                 const errorDiv = document.createElement('div');
                 errorDiv.className = 'message bot';
                 errorDiv.style.color = 'red';

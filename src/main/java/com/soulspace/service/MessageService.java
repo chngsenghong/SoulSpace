@@ -32,7 +32,7 @@ public class MessageService {
         msg.setSender(sender);
         msg.setReceiver(receiver);
         msg.setContent(content);
-        msg.setConversationStatus("ACTIVE"); // Ensure new messages are ACTIVE
+        msg.setConversationStatus("ACTIVE");
 
         messageDAO.save(msg);
     }
@@ -41,14 +41,12 @@ public class MessageService {
         return messageDAO.findChat(userId, partnerId);
     }
 
-    // 1. Get ONLY Active Conversations
     public Map<User, Message> getActiveConversations(Long userId) {
         List<Message> all = messageDAO.findAllForUser(userId);
         Map<User, Message> map = new LinkedHashMap<>();
 
         for (Message m : all) {
             User partner = m.getSender().getId().equals(userId) ? m.getReceiver() : m.getSender();
-            // Only add if status is ACTIVE
             if ("ACTIVE".equals(m.getConversationStatus())) {
                 map.putIfAbsent(partner, m);
             }
@@ -56,14 +54,12 @@ public class MessageService {
         return map;
     }
 
-    // 2. Get ONLY Archived Conversations
     public Map<User, Message> getArchivedConversations(Long userId) {
         List<Message> all = messageDAO.findAllForUser(userId);
         Map<User, Message> map = new LinkedHashMap<>();
 
         for (Message m : all) {
             User partner = m.getSender().getId().equals(userId) ? m.getReceiver() : m.getSender();
-            // Only add if status is ARCHIVED
             if ("ARCHIVED".equals(m.getConversationStatus())) {
                 map.putIfAbsent(partner, m);
             }
@@ -71,7 +67,6 @@ public class MessageService {
         return map;
     }
 
-    // 3. Archive (End) Chat
     public void archiveChat(Long userId, Long partnerId) {
         List<Message> chat = messageDAO.findChat(userId, partnerId);
         for (Message m : chat) {
@@ -80,7 +75,6 @@ public class MessageService {
         }
     }
 
-    // 4. Restart Chat
     public void unarchiveChat(Long userId, Long partnerId) {
         List<Message> chat = messageDAO.findChat(userId, partnerId);
         for (Message m : chat) {

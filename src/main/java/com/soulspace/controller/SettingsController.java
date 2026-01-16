@@ -36,7 +36,6 @@ public class SettingsController {
 
     @PostMapping
     public String saveSettings(
-            // FIX: Added 'name = "..."' to every @RequestParam
             @RequestParam(name = "firstName", required = false) String firstName,
             @RequestParam(name = "lastName", required = false) String lastName,
             @RequestParam(name = "email", required = false) String email,
@@ -61,13 +60,11 @@ public class SettingsController {
             
             if (bio != null) user.setBio(bio);
 
-            // Checkboxes send "on" if checked, null if unchecked
             user.setEmailNotifications("on".equals(emailNotif));
             user.setPushNotifications("on".equals(pushNotif));
 
             userService.updateUserProfile(user);
             
-            // Update the display name in the session immediately
             session.setAttribute("user", user.getFirstName() + " " + user.getLastName());
         }
 

@@ -2,10 +2,10 @@ package com.soulspace.model;
 
 public class Recommendation {
     private String title;
-    private String type; // e.g., "Learning Module"
+    private String type;
     private String duration;
-    private int progress; // 0 to 100
-    private String iconType; // To decide which SVG to show
+    private int progress; 
+    private String iconType; 
 
     public Recommendation(String title, String type, String duration, int progress, String iconType) {
         this.title = title;

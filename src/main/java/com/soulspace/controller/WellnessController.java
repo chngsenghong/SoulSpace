@@ -37,7 +37,6 @@ public class WellnessController {
         }
         model.addAttribute("chartData", chartData);
 
-        // 3. Recent Activity
         List<Map<String, String>> activities = new ArrayList<>();
         Map<String, String> act1 = new HashMap<>();
         act1.put("type", "mood");

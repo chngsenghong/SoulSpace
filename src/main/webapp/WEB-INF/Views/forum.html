@@ -22,18 +22,16 @@
         
         .tags { margin-top: 1rem; display: flex; gap: 0.5rem; }
         .tag { background: #f3f4f6; color: #4b5563; padding: 0.25rem 0.75rem; border-radius: 999px; font-size: 0.75rem; font-weight: 500; }
-        /* Hide the actual checkbox square */
         .tag-checkbox {
             display: none;
         }
 
-        /* Style the label to look like a button */
         .tag-label {
             display: inline-block;
             padding: 0.25rem 0.75rem;
             background-color: #f3f4f6;
             border: 1px solid #d1d5db;
-            border-radius: 999px; /* Pill shape */
+            border-radius: 999px; 
             color: #4b5563;
             font-size: 0.875rem;
             cursor: pointer;
@@ -41,15 +39,13 @@
             user-select: none;
         }
 
-        /* Hover effect */
         .tag-label:hover {
             background-color: #e5e7eb;
         }
 
-        /* When the checkbox is CHECKED, change the label color */
         .tag-checkbox:checked + .tag-label {
-            background-color: #3b82f6; /* Blue background */
-            color: white;              /* White text */
+            background-color: #3b82f6; 
+            color: white;           
             border-color: #3b82f6;
         }
     </style>

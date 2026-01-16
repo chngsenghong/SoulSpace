@@ -2,8 +2,8 @@ package com.soulspace.model;
 
 public class Assessment {
     private String title;
-    private String result; // e.g., "Moderate"
-    private String colorClass; // e.g., "yellow", "green"
+    private String result;
+    private String colorClass; 
     private String date;
 
     public Assessment(String title, String result, String colorClass, String date) {

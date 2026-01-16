@@ -43,11 +43,9 @@ public class DashboardController {
         String role = (String) session.getAttribute("role");
         Long userId = (Long) session.getAttribute("userId");
 
-        // --- ROLE 1: MENTAL HEALTH PROFESSIONAL ---
         if ("PROFESSIONAL".equals(role)) {
              List<Appointment> all = appointmentService.getAppointmentsByProfessional(userId);
-             
-             // FIX: Filter to show ONLY 'CONFIRMED' appointments on Dashboard
+
              List<Appointment> activeOnly = all.stream()
                  .filter(a -> a.getStatus() == Appointment.AppointmentStatus.CONFIRMED)
                  .collect(Collectors.toList());
@@ -63,17 +61,13 @@ public class DashboardController {
             List<ForumPost> allPosts = forumService.getAllPosts(); 
             model.addAttribute("managePosts", allPosts);
         }
-
-        // --- ROLE 3: STUDENT (Default) ---
         else {
             if (userId != null) {
                 List<Appointment> apps = appointmentService.getAppointmentsForStudent(userId);
-                // For students, usually show the next CONFIRMED one
                 if (!apps.isEmpty()) {
                     model.addAttribute("nextAppointment", apps.get(0));
                 }
             }
-            // Mock Data for Student Dashboard
             model.addAttribute("assessment", new Assessment("Stress Level Assessment", "Moderate", "yellow", "Nov 3, 2025"));
             
             List<Recommendation> recs = new ArrayList<>();

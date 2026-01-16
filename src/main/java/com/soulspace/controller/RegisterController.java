@@ -22,13 +22,11 @@ public class RegisterController {
         this.userService = userService;
     }
 
-    // 1. Show the Registration Page
     @GetMapping
     public String showRegisterPage() {
         return "register";
     }
 
-    // 2. Handle the Form Submission
     @PostMapping
     public String handleRegistration(
             @RequestParam("firstName") String firstName,
@@ -37,29 +35,25 @@ public class RegisterController {
             @RequestParam("password") String password,
             Model model) {
 
-        // Check if user already exists
+
         if (userService.getUserByEmail(email) != null) {
             model.addAttribute("errorMessage", "That email is already registered. Please log in.");
             return "register";
         }
 
-        // Create new User
         User newUser = new User();
         newUser.setFirstName(firstName);
         newUser.setLastName(lastName);
         newUser.setEmail(email);
-        newUser.setPassword(password); // Note: In production, hash this password!
+        newUser.setPassword(password);
         
-        // Set Defaults
-        newUser.setRole("STUDENT"); // Default role
+        newUser.setRole("STUDENT");
         newUser.setBio("I am new to SoulSpace.");
         newUser.setEmailNotifications(true);
         newUser.setPushNotifications(false);
 
-        // Save to DB
         userService.registerUser(newUser);
 
-        // Redirect to login with success message
         return "redirect:/login?registered=true";
     }
 }

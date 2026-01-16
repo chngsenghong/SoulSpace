@@ -70,27 +70,23 @@ public class ForumController {
 
         User user = userService.getUserByEmail(email);
 
-        // 1. Get All Posts and Filter by Current User ID
-        // (This allows us to reuse the list without changing Service code)
-        List<ForumPost> allPosts = forumService.getAllPosts(); // Assuming this method exists as seen in DashboardController
+        List<ForumPost> allPosts = forumService.getAllPosts(); 
         List<ForumPost> myPosts = allPosts.stream()
                 .filter(p -> p.getAuthor().getId().equals(user.getId()))
                 .collect(Collectors.toList());
 
         model.addAttribute("forumPosts", myPosts);
 
-        // 2. Add UI Data (So the page doesn't crash)
         List<String> categories = Arrays.asList(
             "Academic Stress", "Mental Health", "Relationships", 
             "Campus Life", "Confessions", "Encouragement", "Others"
         );
         model.addAttribute("categories", categories);
-        model.addAttribute("isHistory", true); // Flag to change Title/Buttons
+        model.addAttribute("isHistory", true);
 
         return "forum";
     }
     
-    // ... (Keep your existing @PostMapping logic unchanged) ...
     @PostMapping
     public String handleForumAction(
             @RequestParam("action") String action,
@@ -102,11 +98,6 @@ public class ForumController {
             HttpSession session,
             RedirectAttributes redirectAttributes) {
 
-        // ... (Keep existing implementation) ...
-        // Copy the implementation from your uploaded file if you are replacing the whole file
-        // Or just add the GetMapping above to your existing file.
-        
-        // Shortened for brevity in this snippet - DO NOT DELETE your existing POST logic
         String email = (String) session.getAttribute("email");
         User user = (email != null) ? userService.getUserByEmail(email) : null;
         if (user == null) return "redirect:/login";

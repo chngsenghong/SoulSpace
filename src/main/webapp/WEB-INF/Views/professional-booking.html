@@ -9,12 +9,10 @@
         .main-content { margin-left:16rem; padding:2rem; }
         .container { max-width:1000px; margin:auto; }
 
-        /* --- TABS CSS (This was missing!) --- */
         .tabs { display:flex; gap:2rem; border-bottom:1px solid #e5e7eb; margin-bottom:2rem; }
         .tab-btn { background:none; border:none; padding:1rem 0; cursor:pointer; font-weight:600; color:#6b7280; font-size: 1rem;}
         .tab-btn.active { color:#2563eb; border-bottom:2px solid #2563eb; }
 
-        /* Hides the content by default, shows it when 'active' class is added */
         .tab-content { display: none; }
         .tab-content.active { display: block; animation: fadeIn 0.3s ease; }
         
@@ -111,12 +109,13 @@
                 
                 <div style="display:flex; gap:0.5rem; align-items:center;">
                     <span th:if="${appt.status.name() == 'COMPLETED'}" class="badge completed">Completed</span>
-                    
                     <span th:if="${appt.status.name() == 'CONFIRMED'}" class="badge pending-action">Action Required</span>
                     
-                    <a th:if="${appt.status.name() == 'CONFIRMED'}"
-                       th:href="@{/booking/professional/appointment/{id}(id=${appt.id})}" 
-                       class="btn btn-view">Complete Now</a>
+                    <a th:href="@{/booking/professional/appointment/{id}(id=${appt.id})}" 
+                       class="btn btn-view"
+                       th:text="${appt.status.name() == 'COMPLETED' ? 'View / Edit' : 'Complete Now'}">
+                       Action
+                    </a>
                 </div>
             </div>
             
@@ -131,13 +130,10 @@
 
 <script>
     function switchTab(id, btn) {
-        // 1. Hide all tab contents
         document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
         
-        // 2. Deactivate all buttons
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
         
-        // 3. Show target content and activate button
         document.getElementById(id + '-tab').classList.add('active');
         btn.classList.add('active');
     }

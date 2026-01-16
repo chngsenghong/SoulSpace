@@ -55,7 +55,6 @@ public class ChatbotController {
             "M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"
         ));
         
-        // Add more suggestions as needed...
         model.addAttribute("suggestionList", suggestions);
 
         return "chatbot";
@@ -66,10 +65,7 @@ public class ChatbotController {
     public Map<String, String> askBot(@RequestBody Map<String, String> payload, HttpSession session) {
         String userMessage = payload.get("message");
         
-        // --- 1. EMERGENCY SAFETY CHECK (Malaysian Context) ---
-        // We check this BEFORE calling the AI to ensure they get local help immediately.
         if (isEmergency(userMessage)) {
-            // WE RETURN HTML DIRECTLY so it renders bold correctly
             String malaysianSafetyMsg = 
                 "⚠️ <strong>It sounds like you're going through a difficult time.</strong><br><br>" +
                 "You are not alone. Please contact these Malaysian crisis resources immediately:<br><br>" +

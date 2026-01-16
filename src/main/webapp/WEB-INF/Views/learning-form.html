@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Edit Course</title>
+    <style>
+        body { font-family: system-ui; background: #f9fafb; }
+        .main-content { margin-left: 16rem; padding: 2rem; }
+        .form-card { background: white; padding: 2rem; border-radius: 1rem; border: 1px solid #e5e7eb; max-width: 800px; margin: 0 auto; }
+        .form-group { margin-bottom: 1rem; }
+        label { display: block; margin-bottom: 0.5rem; font-weight: 600; }
+        input, select, textarea { width: 100%; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 0.5rem; }
+        .lesson-list { margin-top: 2rem; border-top: 1px solid #e5e7eb; padding-top: 2rem; }
+        .lesson-item { display: flex; justify-content: space-between; padding: 1rem; background: #f9fafb; margin-bottom: 0.5rem; border-radius: 0.5rem; }
+        .btn { padding: 0.75rem 1.5rem; background: #3b82f6; color: white; border: none; border-radius: 0.5rem; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <div th:replace="~{navigation :: sidebar-fragment}"></div>
+
+    <main class="main-content">
+        <div class="form-card">
+            <h1 th:text="${course.id == null ? 'Create Course' : 'Edit Course'}">Course</h1>
+            
+            <form th:action="@{/learning/save}" th:object="${course}" method="post">
+                <input type="hidden" th:field="*{id}">
+                
+                <div class="form-group">
+                    <label>Course Title</label>
+                    <input type="text" th:field="*{title}" required>
+                </div>
+                <div class="form-group">
+                    <label>Instructor Name</label>
+                    <input type="text" th:field="*{author}" required>
+                </div>
+                <div class="form-group">
+                    <label>Description</label>
+                    <textarea th:field="*{description}" rows="4"></textarea>
+                </div>
+                <div class="form-group" style="display:grid; grid-template-columns: 1fr 1fr; gap:1rem;">
+                    <div>
+                        <label>Category</label>
+                        <select th:field="*{category}">
+                            <option value="Therapy">Therapy</option>
+                            <option value="Mindfulness">Mindfulness</option>
+                            <option value="Depression">Depression</option>
+                            <option value="Anxiety">Anxiety</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label>Level</label>
+                        <select th:field="*{level}">
+                            <option value="Beginner">Beginner</option>
+                            <option value="Intermediate">Intermediate</option>
+                            <option value="Advanced">Advanced</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Duration (e.g., "4 hours")</label>
+                    <input type="text" th:field="*{duration}">
+                </div>
+
+                <div style="text-align: right; margin-top: 1rem;">
+                    <a th:href="@{/learning/manage}" style="color: #6b7280; text-decoration: none; margin-right: 1rem;">Cancel</a>
+                    <button type="submit" class="btn">Save Course Details</button>
+                </div>
+            </form>
+
+            <div class="lesson-list" th:if="${course.id != null}">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+                    <h3>Curriculum</h3>
+                    <a th:href="@{/learning/{cid}/lesson/add(cid=${course.id})}" style="color:#3b82f6; text-decoration:none; font-weight:600;">+ Add Lesson</a>
+                </div>
+
+                <div th:each="lesson : ${lessons}" class="lesson-item">
+                    <span th:text="${lesson.title}">Lesson 1</span>
+                    <div style="display:flex; gap:1rem;">
+                        <a th:href="@{/learning/{cid}/lesson/edit/{lid}(cid=${course.id}, lid=${lesson.id})}" style="color:#3b82f6;">Edit</a>
+                        <form th:action="@{/learning/{cid}/lesson/delete/{lid}(cid=${course.id}, lid=${lesson.id})}" method="post" onsubmit="return confirm('Delete lesson?')">
+                            <button type="submit" style="background:none; border:none; color:#ef4444; cursor:pointer;">Delete</button>
+                        </form>
+                    </div>
+                </div>
+                <div th:if="${#lists.isEmpty(lessons)}" style="color:#9ca3af; text-align:center;">No lessons added yet.</div>
+            </div>
+        </div>
+    </main>
+</body>
+</html>

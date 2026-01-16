@@ -181,12 +181,9 @@
 
 <script>
     function switchList(id, btn) {
-        // Hide all lists
         document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-        // Show target list
         document.getElementById(id + '-list').classList.add('active');
         
-        // Update button styles
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
     }

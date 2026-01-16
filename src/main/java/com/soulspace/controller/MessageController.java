@@ -29,7 +29,6 @@ public class MessageController {
         this.userService = userService;
     }
 
-    // --- MAIN MESSAGING PAGE ---
     @GetMapping
     public String messaging(
             @RequestParam(value = "chatWith", required = false) Long chatWith,
@@ -37,20 +36,17 @@ public class MessageController {
             Model model) {
 
         Long userId = (Long) session.getAttribute("userId");
-        String role = (String) session.getAttribute("role"); // Get Role
+        String role = (String) session.getAttribute("role");
 
         if (userId == null) return "redirect:/login";
 
-        // 1. Load Conversations (Common for everyone)
         Map<User, Message> activeConversations = messageService.getActiveConversations(userId);
         Map<User, Message> historyConversations = messageService.getArchivedConversations(userId);
 
-        // 2. Load Professionals List (Only needed for Students)
         if ("STUDENT".equals(role)) {
             model.addAttribute("professionals", userService.getProfessionals());
         }
 
-        // 3. Handle Active Chat Window (Right Side)
         String selectedTab = "active";
         
         if (chatWith != null) {
@@ -62,12 +58,10 @@ public class MessageController {
             if (partner != null) {
                 model.addAttribute("activePartner", partner);
 
-                // Check if this partner is new (not in active/history yet)
                 boolean existsInActive = activeConversations.keySet().stream().anyMatch(u -> u.getId().equals(chatWith));
                 boolean existsInHistory = historyConversations.keySet().stream().anyMatch(u -> u.getId().equals(chatWith));
 
                 if (!existsInActive && !existsInHistory) {
-                    // Add them to the map temporarily so they appear in the sidebar
                     Map<User, Message> newMap = new java.util.LinkedHashMap<>();
                     newMap.put(partner, null); 
                     newMap.putAll(activeConversations);
@@ -75,7 +69,6 @@ public class MessageController {
                 }
             }
 
-            // Determine Status (Active vs Archived)
             String currentStatus = "ACTIVE";
             if (!messages.isEmpty()) {
                 currentStatus = messages.get(0).getConversationStatus();
@@ -91,15 +84,13 @@ public class MessageController {
         model.addAttribute("historyConversations", historyConversations);
         model.addAttribute("selectedTab", selectedTab);
 
-        // --- ROUTING LOGIC ---
         if ("STUDENT".equals(role)) {
-            return "messaging"; // Students get the standard view
+            return "messaging"; 
         } else {
-            return "messaging-professional"; // Professionals & Faculty get the inbox view
+            return "messaging-professional"; 
         }
     }
 
-    // --- SEND MESSAGE ---
     @PostMapping("/send")
     public String sendMessage(
             @RequestParam("receiverId") Long receiverId,
@@ -111,7 +102,6 @@ public class MessageController {
         return "redirect:/messaging?chatWith=" + receiverId;
     }
 
-    // --- END CHAT ---
     @PostMapping("/end")
     public String endChat(@RequestParam("partnerId") Long partnerId, HttpSession session) {
         Long userId = (Long) session.getAttribute("userId");
@@ -119,7 +109,6 @@ public class MessageController {
         return "redirect:/messaging";
     }
 
-    // --- RESTART CHAT ---
     @PostMapping("/restart")
     public String restartChat(@RequestParam("partnerId") Long partnerId, HttpSession session) {
         Long userId = (Long) session.getAttribute("userId");

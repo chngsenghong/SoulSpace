@@ -27,7 +27,6 @@ public class UserService {
 
     @Transactional(readOnly = true)
     public User getUserById(Long id) {
-        // Ensure your UserDAO has findById (we added this in previous steps)
         return userDAO.findById(id);
     }
     

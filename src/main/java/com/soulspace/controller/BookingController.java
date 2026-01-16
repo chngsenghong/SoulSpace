@@ -47,7 +47,6 @@ public class BookingController {
     }
 
     /* ================= STUDENT SECTION ================= */
-
     @GetMapping
     public String studentBooking(Model model) {
         Long studentId = 1L; 
@@ -99,8 +98,7 @@ public class BookingController {
         
         LocalDateTime now = LocalDateTime.now();
 
-        // 1. UPCOMING: Must be CONFIRMED + In the FUTURE
-        // If an appointment is COMPLETED, it will fail the first filter, so it won't show here.
+        // 1. UPCOMING
         List<Appointment> upcoming = allAppointments.stream()
                 .filter(a -> a.getStatus() == Appointment.AppointmentStatus.CONFIRMED)
                 .filter(a -> {
@@ -111,13 +109,10 @@ public class BookingController {
                 .collect(Collectors.toList());
         model.addAttribute("upcomingAppointments", upcoming);
 
-        // 2. PAST: Either COMPLETED ... OR ... (CONFIRMED but time has passed)
+        // 2. PAST / PENDING (Include Completed)
         List<Appointment> past = allAppointments.stream()
                 .filter(a -> {
-                    // Logic: Always show COMPLETED items here
                     if (a.getStatus() == Appointment.AppointmentStatus.COMPLETED) return true;
-                    
-                    // Logic: If CONFIRMED but missed (date passed), show here too
                     if (a.getStatus() == Appointment.AppointmentStatus.CONFIRMED) {
                         if (a.getAppointmentDate() == null || a.getAppointmentTime() == null) return false;
                         LocalDateTime apptTime = LocalDateTime.of(a.getAppointmentDate(), a.getAppointmentTime());
@@ -138,7 +133,7 @@ public class BookingController {
 
         Appointment appt = appointmentService.getAppointmentById(id);
         
-        // Relaxed security check to prevent "empty" redirects during debugging
+        // Relaxed security check
         if (appt != null) {
             model.addAttribute("appt", appt);
             return "professional-appointment-detail";
@@ -146,7 +141,7 @@ public class BookingController {
         return "redirect:/booking/professional";
     }
 
-    // UPDATE LOGIC: This saves the notes and marks as COMPLETED
+    // UPDATE LOGIC: Allow clearing date and editing notes
     @PostMapping("/professional/appointment/{id}/update")
     public String updateSession(
             @PathVariable("id") Long id,
@@ -156,21 +151,29 @@ public class BookingController {
         Appointment appt = appointmentService.getAppointmentById(id);
         
         if (appt != null) {
-            // 1. Save Notes
             appt.setProfessionalNotes(notes);
             
-            // 2. Save Follow Up Date (if provided)
+            // FIX: Allow clearing the date if input is empty
             if (followUpDate != null && !followUpDate.trim().isEmpty()) {
                 appt.setFollowUpDate(LocalDate.parse(followUpDate));
+            } else {
+                appt.setFollowUpDate(null); // Clear date
             }
             
-            // 3. IMPORTANT: Set Status to COMPLETED
             appt.setStatus(Appointment.AppointmentStatus.COMPLETED);
-            
-            // 4. Save to Database
             appointmentService.save(appt);
         }
 
+        return "redirect:/booking/professional";
+    }
+
+    @PostMapping("/professional/appointment/{id}/delete")
+    public String deleteAppointmentProfessional(@PathVariable("id") Long id) {
+        Appointment appt = appointmentService.getAppointmentById(id);
+        if (appt != null) {
+            appt.setStatus(Appointment.AppointmentStatus.CANCELLED);
+            appointmentService.save(appt);
+        }
         return "redirect:/booking/professional";
     }
 }
