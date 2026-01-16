@@ -58,7 +58,7 @@
                 <div class="info-grid">
                     <div class="info-item">
                         <h4>Date</h4>
-                        <p th:text="${appt.formattedDate}">Dec 12, 2025</p>
+                        <p th:text="${#temporals.format(appt.appointmentDate, 'dd MMM yyyy')}">Dec 12, 2025</p>
                     </div>
                     <div class="info-item">
                         <h4>Time</h4>
@@ -66,17 +66,17 @@
                     </div>
                     <div class="info-item">
                         <h4>Type</h4>
-                        <p th:text="${appt.type}">Video Call</p>
+                        <p th:text="${appt.type.name() == 'VIDEO' ? 'Video Call' : 'In-Person'}">Video Call</p>
                     </div>
                     <div class="info-item">
                         <h4>Location</h4>
-                        <p th:if="${appt.type == 'Video'}">Online Meeting</p>
-                        <p th:if="${appt.type != 'Video'}" th:text="${appt.venue}">Clinic Room 1</p>
+                        <p th:if="${appt.type.name() == 'VIDEO'}">Online Meeting</p>
+                        <p th:if="${appt.type.name() != 'VIDEO'}">SoulSpace Clinic, Room 3</p>
                     </div>
                 </div>
 
-                <div class="action-box" th:if="${!appt.isPast() and appt.type == 'Video'}">
-                    <a th:href="${appt.meetingLink}" target="_blank" class="join-btn">Join Video Session</a>
+                <div class="action-box" th:if="${!appt.isPast() and appt.type.name() == 'VIDEO'}">
+                    <a href="#" onclick="alert('Meeting link would go here')" class="join-btn">Join Video Session</a>
                     <p style="text-align:center; font-size:0.875rem; color:#6b7280;">Link becomes active 5 minutes before start.</p>
                 </div>
 

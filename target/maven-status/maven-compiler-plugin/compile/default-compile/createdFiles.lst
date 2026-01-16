@@ -1,14 +1,10 @@
 com\soulspace\dao\MessageDAOImpl.class
-<<<<<<< HEAD
-=======
-com\soulspace\model\Comment.class
->>>>>>> origin/Seng-Hong
 com\soulspace\dao\UserDAO.class
 com\soulspace\service\AppointmentService.class
+com\soulspace\service\AppointmentServiceImpl.class
 com\soulspace\service\UserService.class
 com\soulspace\service\GeminiService.class
 com\soulspace\controller\ForumController.class
-<<<<<<< HEAD
 com\soulspace\dao\LearningDAO.class
 com\soulspace\model\Assessment.class
 com\soulspace\dao\UserDAOImpl.class
@@ -24,6 +20,7 @@ com\soulspace\dao\LearningLessonDAOImpl.class
 com\soulspace\dao\AppointmentDAO.class
 com\soulspace\dao\LessonProgressDAO.class
 com\soulspace\model\User.class
+com\soulspace\model\PostReaction.class
 com\soulspace\model\PostStatus.class
 com\soulspace\dao\EnrollmentDAOImpl.class
 com\soulspace\dao\LearningDAOImpl.class
@@ -40,6 +37,7 @@ com\soulspace\dao\ForumDAOImpl.class
 com\soulspace\model\Learning.class
 com\soulspace\dao\EnrollmentDAO.class
 com\soulspace\dao\LearningLessonDAO.class
+com\soulspace\model\Appointment$AppointmentStatus.class
 com\soulspace\model\Message.class
 com\soulspace\controller\ChatbotController.class
 com\soulspace\model\LessonProgress.class
@@ -47,42 +45,13 @@ com\soulspace\dao\AppointmentDAOImpl.class
 com\soulspace\controller\AppointmentDetailController.class
 com\soulspace\model\Enrollment.class
 com\soulspace\controller\RegisterController.class
+com\soulspace\controller\UserManagementController.class
 com\soulspace\config\HibernateConfig.class
 com\soulspace\dao\LessonProgressDAOImpl.class
 com\soulspace\dao\AnalyticsDAO.class
-com\soulspace\service\MessageService$ConversationDTO.class
 com\soulspace\service\MessageService.class
 com\soulspace\service\LearningService.class
-=======
-com\soulspace\service\ForumService.class
-com\soulspace\controller\LoginController.class
-com\soulspace\model\Appointment.class
-com\soulspace\model\Assessment.class
-com\soulspace\dao\UserDAOImpl.class
-com\soulspace\controller\SettingsController.class
-com\soulspace\dao\ForumDAO.class
-com\soulspace\dao\MessageDAO.class
-com\soulspace\model\SuggestionCard.class
-com\soulspace\controller\BookingController.class
-com\soulspace\model\Recommendation.class
-com\soulspace\model\ForumPost.class
-com\soulspace\controller\WellnessController.class
-com\soulspace\dao\ForumDAOImpl.class
-com\soulspace\controller\DashboardController.class
-com\soulspace\controller\LogoutController.class
-com\soulspace\model\Message.class
-com\soulspace\controller\ChatbotController.class
-com\soulspace\dao\AppointmentDAO.class
-com\soulspace\dao\AppointmentDAOImpl.class
-com\soulspace\controller\AppointmentDetailController.class
-com\soulspace\controller\RegisterController.class
-com\soulspace\model\User.class
-com\soulspace\model\PostReaction.class
-com\soulspace\model\PostStatus.class
-com\soulspace\config\HibernateConfig.class
-com\soulspace\service\MessageService$ConversationDTO.class
-com\soulspace\service\MessageService.class
->>>>>>> origin/Seng-Hong
 com\soulspace\controller\MessageController.class
 com\soulspace\controller\LearningController.class
+com\soulspace\model\Appointment$SessionType.class
 com\soulspace\controller\ForumDetailController.class

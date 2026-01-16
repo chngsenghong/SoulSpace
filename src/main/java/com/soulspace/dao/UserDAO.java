@@ -9,4 +9,5 @@ public interface UserDAO {
     User loginUser(String email, String password);
     User findById(Long id);
     List<User> findByRole(String role);
+    List<User> findAll();
 }
