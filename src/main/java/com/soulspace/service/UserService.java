@@ -39,4 +39,9 @@ public class UserService {
     public List<User> getProfessionals() {
         return userDAO.findByRole("PROFESSIONAL");
     }
+
+    @Transactional(readOnly = true)
+    public List<User> getAllUsers() {
+        return userDAO.findAll();
+    }
 }
