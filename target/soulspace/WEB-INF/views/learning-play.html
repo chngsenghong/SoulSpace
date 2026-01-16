@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="${lesson.title} + ' - ' + ${course.title}">Lesson View</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-purple: #8b5cf6;
+            --primary-blue: #3b82f6;
+            --text-dark: #1f2937;
+            --text-gray: #6b7280;
+            --bg-light: #f8fafc;
+            --success-green: #10b981;
+            --border-color: #e5e7eb;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        body { background-color: var(--bg-light); color: var(--text-dark); }
+
+        .main-content {
+            margin-left: 16rem; 
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        @media (max-width: 1024px) { .main-content { margin-left: 0; } }
+
+        .top-nav {
+            background: white; border-bottom: 1px solid var(--border-color);
+            padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center;
+            position: sticky; top: 0; z-index: 10;
+        }
+        
+        .back-btn { 
+            text-decoration: none; 
+            color: var(--text-dark); 
+            font-weight: 600; 
+            font-size: 0.95rem; 
+            display: flex; 
+            align-items: center; 
+            gap: 0.5rem; 
+            transition: color 0.2s;
+        }
+        .back-btn:hover { color: var(--primary-purple); }
+        
+        .nav-actions { display: flex; gap: 1rem; }
+        .action-btn { background: white; border: 1px solid var(--border-color); padding: 0.5rem 1rem; border-radius: 0.5rem; cursor: pointer; font-weight: 600; font-size: 0.85rem; color: var(--text-dark); display: flex; align-items: center; gap: 0.5rem; }
+        .action-btn:hover { background: var(--bg-light); }
+
+        .progress-container { background: white; padding: 1.5rem 2rem; border-bottom: 1px solid var(--border-color); }
+        .progress-info { display: flex; justify-content: space-between; margin-bottom: 0.5rem; font-size: 0.9rem; font-weight: 600; }
+        .progress-bar-bg { width: 100%; height: 8px; background: #e5e7eb; border-radius: 4px; overflow: hidden; }
+        .progress-bar-fill { height: 100%; background: var(--text-dark); border-radius: 4px; transition: width 0.3s ease; }
+
+        .play-container {
+            max-width: 1400px;
+            margin: 2rem auto; 
+            padding: 0 2rem;
+            display: grid; 
+            grid-template-columns: 2.5fr 1fr; 
+            gap: 2rem;
+            width: 100%;
+        }
+        @media (max-width: 1100px) { .play-container { grid-template-columns: 1fr; } }
+
+        .lesson-header {
+            background: linear-gradient(135deg, #8b5cf6 0%, #a855f7 100%);
+            color: white; border-radius: 1rem; padding: 2.5rem; margin-bottom: 2rem;
+            display: flex; align-items: center; gap: 1.5rem;
+            box-shadow: 0 4px 15px rgba(139, 92, 246, 0.2);
+        }
+        .lesson-icon-lg {
+            background: rgba(255,255,255,0.2); width: 60px; height: 60px; border-radius: 12px;
+            display: flex; align-items: center; justify-content: center; font-size: 1.8rem; flex-shrink: 0;
+        }
+        .tag { background: rgba(255,255,255,0.25); padding: 0.2rem 0.6rem; border-radius: 4px; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; }
+        
+        .content-body { background: white; border: 1px solid var(--border-color); border-radius: 1rem; padding: 3rem; }
+        .content-body h2 { font-size: 1.8rem; margin-bottom: 1.5rem; color: #111827; }
+        .content-body p { line-height: 1.8; color: #4b5563; margin-bottom: 1.5rem; font-size: 1.05rem; }
+
+        .widget-card { background: white; border: 1px solid var(--border-color); border-radius: 1rem; margin-bottom: 1.5rem; overflow: hidden; }
+        .widget-header { padding: 1.2rem; border-bottom: 1px solid var(--border-color); font-weight: 700; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
+        .widget-content { padding: 1.2rem; }
+        
+        .kp-list { list-style: none; }
+        .kp-list li { display: flex; gap: 0.8rem; margin-bottom: 1rem; font-size: 0.9rem; color: #4b5563; align-items: flex-start; }
+        .kp-list i { color: var(--success-green); margin-top: 3px; }
+
+        .resource-item { display: flex; align-items: center; gap: 0.8rem; padding: 0.8rem; background: #f9fafb; border-radius: 0.5rem; margin-bottom: 0.5rem; text-decoration: none; color: inherit; transition: background 0.2s; }
+        .resource-item:hover { background: #f3f4f6; }
+        .res-icon { color: var(--text-gray); font-size: 1.1rem; }
+        .res-text { font-size: 0.85rem; font-weight: 500; }
+
+        .complete-section { background: #eff6ff; padding: 1.5rem; border: 1px solid #dbeafe; border-radius: 1rem; }
+        .btn-complete {
+            background: #0f172a; color: white; width: 100%; padding: 1rem; border-radius: 0.5rem;
+            border: none; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+            transition: transform 0.2s;
+        }
+        .btn-complete:hover { transform: translateY(-2px); }
+        .btn-completed { background: var(--success-green); cursor: default; }
+
+    </style>
+</head>
+<body>
+
+    <div th:replace="~{navigation :: sidebar-fragment}"></div>
+
+    <main class="main-content">
+        
+        <nav class="top-nav">
+            <a th:href="@{/learning/detail/{id}(id=${course.id})}" class="back-btn">
+                <i class="fas fa-arrow-left"></i> Back to Course Details
+            </a>
+            
+            <div class="nav-actions">
+                <button class="action-btn"><i class="far fa-flag"></i> Report Issue</button>
+                <button class="action-btn"><i class="fas fa-share-alt"></i> Share</button>
+            </div>
+        </nav>
+
+        <div class="progress-container">
+            <div class="progress-info">
+                <div>
+                    <span style="color:var(--text-gray); font-weight:500;">Course Progress</span><br>
+                    <span th:text="${course.title}">Course Title</span>
+                </div>
+                <div style="text-align:right">
+                    <span style="color:var(--text-gray); font-weight:500;" 
+                          th:text="|Lesson ${currentLessonIndex} of ${totalLessons}|">Lesson 2 of 5</span><br>
+                    <span th:text="|${progressPercent}% Complete|" style="color:var(--primary-purple)">40% Complete</span>
+                </div>
+            </div>
+            <div class="progress-bar-bg">
+                <div class="progress-bar-fill" th:style="|width: ${progressPercent}%|"></div>
+            </div>
+        </div>
+
+        <div class="play-container">
+            
+            <div class="left-content">
+                <div class="lesson-header">
+                    <div class="lesson-icon-lg">
+                        <i class="fas fa-video" th:if="${lesson.type == 'Video'}"></i>
+                        <i class="fas fa-file-alt" th:unless="${lesson.type == 'Video'}"></i>
+                    </div>
+                    <div>
+                        <div style="display:flex; gap:0.5rem; margin-bottom:0.5rem; align-items:center;">
+                            <span class="tag" th:text="${lesson.type}">Reading</span>
+                            <span style="font-size:0.85rem; opacity:0.9;" th:text="|&bull; ${lesson.duration}|">• 12 min</span>
+                        </div>
+                        <h1 th:text="${lesson.title}" style="font-size:1.8rem; font-weight:700; line-height:1.2; margin-bottom:0.2rem;">Lesson Title</h1>
+                        <div style="opacity:0.9; font-size:0.95rem;" th:text="|Lesson ${currentLessonIndex} of ${totalLessons}|">Lesson 2 of 5</div>
+                    </div>
+                </div>
+
+                <div class="content-body">
+                    <div th:if="${lesson.type == 'Video'}" style="margin-bottom: 2rem;">
+                         <iframe 
+                            th:if="${lesson.videoUrl != null}"
+                            th:src="${lesson.videoUrl}" 
+                            title="Video Player"
+                            style="width: 100%; aspect-ratio: 16/9; border-radius: 0.5rem; border: none; background: black;"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                            allowfullscreen>
+                        </iframe>
+                        <div th:unless="${lesson.videoUrl != null}" style="background:black; aspect-ratio:16/9; width:100%; border-radius:0.5rem; display:flex; align-items:center; justify-content:center; color:white;">
+                            <span>Video URL not found</span>
+                        </div>
+                    </div>
+                    <div th:utext="${lesson.content}"></div>
+                </div>
+            </div>
+
+            <div class="right-sidebar">
+                
+                <div class="widget-card">
+                    <div class="widget-header">
+                        <span style="color:var(--primary-blue)"><i class="far fa-bookmark" style="margin-right:0.5rem"></i> Key Points</span>
+                        <i class="fas fa-chevron-up" style="font-size:0.8rem"></i>
+                    </div>
+                    <div class="widget-content">
+                        <ul class="kp-list">
+                             <li><i class="far fa-check-circle"></i> <span>Understanding Core concepts</span></li>
+                             <li><i class="far fa-check-circle"></i> <span>Applying theory to practice</span></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="complete-section">
+                    <div style="font-weight:600; margin-bottom:1rem; color:var(--text-dark);">Complete Lesson</div>
+                    
+                    <form th:action="@{/learning/complete-lesson}" method="post">
+                        <input type="hidden" name="lessonId" th:value="${lesson.id}" />
+                        <input type="hidden" name="courseId" th:value="${course.id}" />
+                        
+                        <button type="submit" class="btn-complete" th:if="${!lessonCompleted}">
+                            <i class="far fa-check-circle"></i> Mark as Complete
+                        </button>
+                        
+                        <button type="button" class="btn-complete btn-completed" th:if="${lessonCompleted}" disabled>
+                            <i class="fas fa-check-circle"></i> Completed
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </main>
+</body>
+</html>
