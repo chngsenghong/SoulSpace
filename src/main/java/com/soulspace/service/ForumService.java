@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.soulspace.dao.ForumDAO;
 import com.soulspace.model.Comment;
 import com.soulspace.model.ForumPost;
+import com.soulspace.model.PostReaction;
 import com.soulspace.model.PostStatus;
 import com.soulspace.model.User;
 
@@ -94,6 +95,8 @@ public class ForumService {
         ForumPost post = forumDAO.getPostById(id);
         if (post != null) {
             post.setViews(post.getViews() + 1);
+            // Simply calling .size() triggers the database fetch
+            post.getReactions().size(); 
         }
         return post;
     }
@@ -134,4 +137,27 @@ public class ForumService {
             forumDAO.savePost(post);
         }
     }
+
+    @Transactional
+    public void toggleSupport(Long postId, User user) {
+        PostReaction existingReaction = forumDAO.findReaction(postId, user.getId());
+        
+        if (existingReaction != null) {
+            // User is removing their support
+            forumDAO.removeReaction(existingReaction);
+            
+            // We also need to remove it from the Post object in memory to keep cache consistent
+            ForumPost post = existingReaction.getPost();
+            post.getReactions().remove(existingReaction);
+        } else {
+            // User is giving support
+            ForumPost post = forumDAO.getPostById(postId);
+            if (post != null) {
+                PostReaction newReaction = new PostReaction(post, user);
+                forumDAO.addReaction(newReaction);
+                post.getReactions().add(newReaction); // Update in memory
+            }
+        }
+    }
+    
 }

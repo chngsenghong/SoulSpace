@@ -2,6 +2,7 @@ package com.soulspace.controller;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors; // Import this
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -14,7 +15,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import com.soulspace.model.Appointment;
 import com.soulspace.model.Assessment;
 import com.soulspace.model.ForumPost;
-import com.soulspace.model.Recommendation; // Import this
+import com.soulspace.model.Recommendation;
 import com.soulspace.service.AppointmentService;
 import com.soulspace.service.ForumService;
 
@@ -44,17 +45,21 @@ public class DashboardController {
 
         // --- ROLE 1: MENTAL HEALTH PROFESSIONAL ---
         if ("PROFESSIONAL".equals(role)) {
-             // They only care about appointments
-             model.addAttribute("allAppointments", appointmentService.getAppointmentsByUser(userId));
+             List<Appointment> all = appointmentService.getAppointmentsByProfessional(userId);
+             
+             // FIX: Filter to show ONLY 'CONFIRMED' appointments on Dashboard
+             List<Appointment> activeOnly = all.stream()
+                 .filter(a -> a.getStatus() == Appointment.AppointmentStatus.CONFIRMED)
+                 .collect(Collectors.toList());
+
+             model.addAttribute("allAppointments", activeOnly);
         } 
         
+        // --- ROLE 2: FACULTY ---
         else if ("FACULTY".equals(role)) {
-            // 1. Fetch Pending (High Priority)
             List<ForumPost> pendingPosts = forumService.getPendingPosts();
             model.addAttribute("pendingPosts", pendingPosts);
             
-            // 2. NEW: Fetch ALL Posts (For Management Table)
-            // You might want to sort these differently (e.g., newest first)
             List<ForumPost> allPosts = forumService.getAllPosts(); 
             model.addAttribute("managePosts", allPosts);
         }
@@ -62,7 +67,8 @@ public class DashboardController {
         // --- ROLE 3: STUDENT (Default) ---
         else {
             if (userId != null) {
-                List<Appointment> apps = appointmentService.getAppointmentsByUser(userId);
+                List<Appointment> apps = appointmentService.getAppointmentsForStudent(userId);
+                // For students, usually show the next CONFIRMED one
                 if (!apps.isEmpty()) {
                     model.addAttribute("nextAppointment", apps.get(0));
                 }
@@ -79,7 +85,6 @@ public class DashboardController {
         return "dashboard";
     }
 
-    // Updated: Only FACULTY can approve posts
     @PostMapping("/approve-post")
     public String approvePost(@RequestParam("postId") Long postId, HttpSession session) {
         String role = (String) session.getAttribute("role");

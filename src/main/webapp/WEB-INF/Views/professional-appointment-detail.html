@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8">
+<title>Session Details</title>
+<style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f9fafb; }
+    .main-content { margin-left: 16rem; padding: 2rem; }
+    .card { background: white; border-radius: 1rem; padding: 2rem; max-width: 800px; margin: auto; border: 1px solid #e5e7eb; }
+    
+    h2 { margin-bottom: 0.5rem; color: #111827; }
+    .time-badge { display: inline-block; background: #eff6ff; color: #1d4ed8; padding: 0.25rem 0.75rem; border-radius: 99px; font-size: 0.9rem; font-weight: 500; margin-bottom: 2rem; }
+
+    label { display: block; font-weight: 600; margin-bottom: 0.5rem; color: #374151; margin-top: 1.5rem; }
+    textarea, input, select { width: 100%; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 0.5rem; font-family: inherit; }
+    textarea { resize: vertical; min-height: 120px; }
+
+    .btn { margin-top: 2rem; padding: 0.75rem 1.5rem; background: #2563eb; color: white; border: none; border-radius: 0.5rem; font-weight: 600; cursor: pointer; transition: background 0.2s; }
+    .btn:hover { background: #1d4ed8; }
+    
+    .back-link { display: inline-block; margin-bottom: 1rem; color: #6b7280; text-decoration: none; font-size: 0.9rem; }
+    .back-link:hover { color: #111827; }
+</style>
+</head>
+<body>
+
+<div th:replace="~{navigation :: sidebar-fragment}"></div>
+
+<main class="main-content">
+    
+    <a th:href="@{/booking/professional}" class="back-link">← Back to Schedule</a>
+
+    <div class="card">
+        <h2 th:if="${appt.user != null}" th:text="${appt.user.firstName + ' ' + appt.user.lastName}">Student Name</h2>
+        <h2 th:if="${appt.user == null}" style="color:#9ca3af;">Unknown Student</h2>
+
+        <div class="time-badge">
+            <span th:if="${appt.appointmentDate != null}" 
+                  th:text="${#temporals.format(appt.appointmentDate, 'EEEE, dd MMMM yyyy', T(java.util.Locale).ENGLISH)}">Date</span>
+            <span> • </span>
+            <span th:if="${appt.appointmentTime != null}" 
+                  th:text="${#temporals.format(appt.appointmentTime, 'hh:mm a', T(java.util.Locale).ENGLISH)}">Time</span>
+        </div>
+        
+        <form th:action="@{/booking/professional/appointment/{id}/update(id=${appt.id})}" method="post">
+
+            <label>Session Notes (Private)</label>
+            <textarea name="professionalNotes" rows="5" placeholder="Enter clinical notes here..."
+                      th:text="${appt.professionalNotes}"></textarea>
+
+            <label>Recommended Follow-up Date</label>
+            <input type="date" name="followUpDate"
+                   th:value="${appt.followUpDate}"/>
+
+            <button type="submit" class="btn">Save & Complete Session</button>
+        </form>
+
+    </div>
+</main>
+
+</body>
+</html>

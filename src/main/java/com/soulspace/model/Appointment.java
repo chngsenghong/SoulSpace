@@ -2,10 +2,11 @@ package com.soulspace.model;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
-import java.time.format.DateTimeFormatter;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -21,48 +22,57 @@ public class Appointment {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    // Student
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
+    // Professional
     @ManyToOne
     @JoinColumn(name = "professional_id", nullable = false)
     private User professional;
 
+    @Column(name = "appointment_date")
     private LocalDate appointmentDate;
-    private LocalTime appointmentTime;
-    private String type;   
-    private String status; 
 
-    // Details
-    private String meetingLink;
-    private String venue;
-    
-    @Column(columnDefinition = "TEXT")
+    @Column(name = "appointment_time")
+    private LocalTime appointmentTime;
+
+    @Enumerated(EnumType.STRING)
+    private AppointmentStatus status;
+
+    @Enumerated(EnumType.STRING)
+    private SessionType type;
+
+    // Professional notes (after session)
+    @Column(name = "professional_notes", length = 2000)
     private String professionalNotes;
+
+    // Optional follow-up
+    @Column(name = "follow_up_date")
     private LocalDate followUpDate;
 
-    public Appointment() {}
+    /* ================= ENUMS ================= */
 
-    public Appointment(User user, User professional, String dateStr, String timeStr, String type) {
-        this.user = user;
-        this.professional = professional;
-        this.type = type;
-        this.status = "Confirmed";
-        
-        if (dateStr != null && !dateStr.isEmpty()) this.appointmentDate = LocalDate.parse(dateStr);
-        if (timeStr != null && !timeStr.isEmpty()) this.appointmentTime = LocalTime.parse(timeStr);
-        
-        if ("Video".equalsIgnoreCase(type)) {
-            this.meetingLink = "https://meet.soulspace.com/" + System.currentTimeMillis();
-        } else {
-            this.venue = "SoulSpace Clinic, Room 302";
-        }
+    public enum AppointmentStatus {
+        CONFIRMED,
+        COMPLETED,
+        CANCELLED
     }
 
+    public enum SessionType {
+        VIDEO,
+        IN_PERSON
+    }
+
+    /* ================= HELPERS ================= */
+
     public boolean isPast() {
-        if (appointmentDate == null) return false;
         return appointmentDate.isBefore(LocalDate.now());
+    }
+
+    public boolean isEditable() {
+        return status == AppointmentStatus.CONFIRMED;
     }
 
     // --- SAFETY METHODS FOR HTML (Prevents 500 Errors) ---
@@ -75,14 +85,6 @@ public class Appointment {
         return appointmentDate != null ? appointmentDate.getMonth().name().substring(0, 3) : "";
     }
 
-    public String getFormattedTime() {
-        return appointmentTime != null ? appointmentTime.format(DateTimeFormatter.ofPattern("h:mm a")) : "--:--";
-    }
-    
-    public String getFormattedDate() {
-        return appointmentDate != null ? appointmentDate.format(DateTimeFormatter.ofPattern("MMM dd, yyyy")) : "";
-    }
-
     // Prevents crash if professional is null
     public String getProfessionalName() {
         if (professional != null) {
@@ -91,27 +93,35 @@ public class Appointment {
         return "Unknown Doctor";
     }
 
-    // Getters/Setters
+    public String getFormattedTime() {
+        return appointmentTime != null ? appointmentTime.toString() : "";
+    }
+
+    /* ================= GETTERS / SETTERS ================= */
+
     public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
+
     public User getUser() { return user; }
     public void setUser(User user) { this.user = user; }
+
     public User getProfessional() { return professional; }
     public void setProfessional(User professional) { this.professional = professional; }
+
     public LocalDate getAppointmentDate() { return appointmentDate; }
     public void setAppointmentDate(LocalDate appointmentDate) { this.appointmentDate = appointmentDate; }
+
     public LocalTime getAppointmentTime() { return appointmentTime; }
     public void setAppointmentTime(LocalTime appointmentTime) { this.appointmentTime = appointmentTime; }
-    public String getType() { return type; }
-    public void setType(String type) { this.type = type; }
-    public String getStatus() { return status; }
-    public void setStatus(String status) { this.status = status; }
-    public String getMeetingLink() { return meetingLink; }
-    public void setMeetingLink(String meetingLink) { this.meetingLink = meetingLink; }
-    public String getVenue() { return venue; }
-    public void setVenue(String venue) { this.venue = venue; }
+
+    public AppointmentStatus getStatus() { return status; }
+    public void setStatus(AppointmentStatus status) { this.status = status; }
+
+    public SessionType getType() { return type; }
+    public void setType(SessionType type) { this.type = type; }
+
     public String getProfessionalNotes() { return professionalNotes; }
     public void setProfessionalNotes(String professionalNotes) { this.professionalNotes = professionalNotes; }
+
     public LocalDate getFollowUpDate() { return followUpDate; }
     public void setFollowUpDate(LocalDate followUpDate) { this.followUpDate = followUpDate; }
 }

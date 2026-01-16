@@ -1,8 +1,8 @@
 package com.soulspace.controller;
 
-import java.util.List; // Needed to find receiver
+import java.util.List;
+import java.util.Map;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -10,7 +10,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import com.soulspace.dao.UserDAO;
 import com.soulspace.model.Message;
 import com.soulspace.model.User;
 import com.soulspace.service.MessageService;
@@ -22,75 +21,109 @@ import jakarta.servlet.http.HttpSession;
 @RequestMapping("/messaging")
 public class MessageController {
 
-    @Autowired private MessageService messageService;
-    @Autowired private UserService userService;
-    // We need direct access to find users by ID for the receiver
-    @Autowired private UserDAO userDAO; // Or add findById to UserService
+    private final MessageService messageService;
+    private final UserService userService;
 
+    public MessageController(MessageService messageService, UserService userService) {
+        this.messageService = messageService;
+        this.userService = userService;
+    }
+
+    // --- MAIN MESSAGING PAGE ---
     @GetMapping
-    public String showMessaging(@RequestParam(value = "chatWith", required = false) Long chatWithId,
-                                HttpSession session, Model model) {
-        Long currentUserId = (Long) session.getAttribute("userId");
-        if (currentUserId == null) return "redirect:/login";
+    public String messaging(
+            @RequestParam(value = "chatWith", required = false) Long chatWith,
+            HttpSession session,
+            Model model) {
 
-        // 1. Load Sidebar (Conversations)
-        List<MessageService.ConversationDTO> conversations = messageService.getConversations(currentUserId);
-        model.addAttribute("conversations", conversations);
+        Long userId = (Long) session.getAttribute("userId");
+        String role = (String) session.getAttribute("role"); // Get Role
 
-        // 2. Load Active Chat
-        if (chatWithId != null) {
-            List<Message> messages = messageService.getChatHistory(currentUserId, chatWithId);
+        if (userId == null) return "redirect:/login";
+
+        // 1. Load Conversations (Common for everyone)
+        Map<User, Message> activeConversations = messageService.getActiveConversations(userId);
+        Map<User, Message> historyConversations = messageService.getArchivedConversations(userId);
+
+        // 2. Load Professionals List (Only needed for Students)
+        if ("STUDENT".equals(role)) {
+            model.addAttribute("professionals", userService.getProfessionals());
+        }
+
+        // 3. Handle Active Chat Window (Right Side)
+        String selectedTab = "active";
+        
+        if (chatWith != null) {
+            List<Message> messages = messageService.getChat(userId, chatWith);
             model.addAttribute("activeMessages", messages);
-            model.addAttribute("activeChatId", chatWithId);
-            
-            // Find the active partner user object to display name/header
-            // Simple way: look in conversations list or fetch from DB
-            User partner = conversations.stream()
-                .filter(c -> c.partner.getId().equals(chatWithId))
-                .map(c -> c.partner)
-                .findFirst()
-                .orElse(null);
-                
-            // If not in conversation list (new chat), fetch from DB (Assuming a method exists, or just rely on existing convos)
+            model.addAttribute("activeChatId", chatWith);
+
+            User partner = userService.getUserById(chatWith);
             if (partner != null) {
                 model.addAttribute("activePartner", partner);
+
+                // Check if this partner is new (not in active/history yet)
+                boolean existsInActive = activeConversations.keySet().stream().anyMatch(u -> u.getId().equals(chatWith));
+                boolean existsInHistory = historyConversations.keySet().stream().anyMatch(u -> u.getId().equals(chatWith));
+
+                if (!existsInActive && !existsInHistory) {
+                    // Add them to the map temporarily so they appear in the sidebar
+                    Map<User, Message> newMap = new java.util.LinkedHashMap<>();
+                    newMap.put(partner, null); 
+                    newMap.putAll(activeConversations);
+                    activeConversations = newMap;
+                }
+            }
+
+            // Determine Status (Active vs Archived)
+            String currentStatus = "ACTIVE";
+            if (!messages.isEmpty()) {
+                currentStatus = messages.get(0).getConversationStatus();
+            }
+            model.addAttribute("chatStatus", currentStatus);
+
+            if ("ARCHIVED".equals(currentStatus)) {
+                selectedTab = "history";
             }
         }
 
-        return "messaging";
+        model.addAttribute("conversations", activeConversations);
+        model.addAttribute("historyConversations", historyConversations);
+        model.addAttribute("selectedTab", selectedTab);
+
+        // --- ROUTING LOGIC ---
+        if ("STUDENT".equals(role)) {
+            return "messaging"; // Students get the standard view
+        } else {
+            return "messaging-professional"; // Professionals & Faculty get the inbox view
+        }
     }
 
+    // --- SEND MESSAGE ---
     @PostMapping("/send")
-    public String sendMessage(@RequestParam("receiverId") Long receiverId,
-                              @RequestParam("content") String content,
-                              HttpSession session) {
-        String email = (String) session.getAttribute("email");
-        if (email == null) return "redirect:/login";
+    public String sendMessage(
+            @RequestParam("receiverId") Long receiverId,
+            @RequestParam("content") String content,
+            HttpSession session) {
 
-        User sender = userService.getUserByEmail(email);
-        
-        // We need to construct the receiver. 
-        // Limitation: UserDAO might strictly need an update to add findById(Long id).
-        // Workaround: We loop through all users or add the method. 
-        // For this code to work, assume we added `User findById(Long id)` to UserDAO/Service.
-        // I will implement a "lazy" fetch here assuming you will add it, or use the conversation list logic.
-        
-        // *** CRITICAL: You must add `User findById(Long id);` to your UserDAO interface and Impl ***
-        // For now, I'll assume it exists or use a placeholder logic.
-        
-        // Construct message
-        // User receiver = userDAO.findById(receiverId); // TODO: Add this method
-        
-        // Since I can't edit your UserDAO directly here easily, I will rely on the fact 
-        // that you likely can add `public User findById(Long id) { return entityManager.find(User.class, id); }` to UserDAOImpl.
-        
-        // Mocking the receiver fetch for compilation safety in this snippet:
-        // In reality: User receiver = userService.getUserById(receiverId);
-        
-        // Create Message Object manually for now
-        // Message msg = new Message(sender, receiver, content);
-        // messageService.saveMessage(msg);
-
+        Long senderId = (Long) session.getAttribute("userId");
+        messageService.sendMessage(senderId, receiverId, content);
         return "redirect:/messaging?chatWith=" + receiverId;
+    }
+
+    // --- END CHAT ---
+    @PostMapping("/end")
+    public String endChat(@RequestParam("partnerId") Long partnerId, HttpSession session) {
+        Long userId = (Long) session.getAttribute("userId");
+        messageService.archiveChat(userId, partnerId);
+        return "redirect:/messaging";
+    }
+
+    // --- RESTART CHAT ---
+    @PostMapping("/restart")
+    public String restartChat(@RequestParam("partnerId") Long partnerId, HttpSession session) {
+        Long userId = (Long) session.getAttribute("userId");
+        messageService.unarchiveChat(userId, partnerId);
+        return "redirect:/messaging?chatWith=" + partnerId;
     }
 }
