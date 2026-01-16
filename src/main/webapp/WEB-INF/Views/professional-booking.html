@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>SoulSpace – Professional Booking</title>
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background:#f9fafb; }
+        .main-content { margin-left:16rem; padding:2rem; }
+        .container { max-width:1000px; margin:auto; }
+
+        /* --- TABS CSS (This was missing!) --- */
+        .tabs { display:flex; gap:2rem; border-bottom:1px solid #e5e7eb; margin-bottom:2rem; }
+        .tab-btn { background:none; border:none; padding:1rem 0; cursor:pointer; font-weight:600; color:#6b7280; font-size: 1rem;}
+        .tab-btn.active { color:#2563eb; border-bottom:2px solid #2563eb; }
+
+        /* Hides the content by default, shows it when 'active' class is added */
+        .tab-content { display: none; }
+        .tab-content.active { display: block; animation: fadeIn 0.3s ease; }
+        
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        /* ------------------------------------ */
+
+        .appt-card {
+            background:white;
+            border:1px solid #e5e7eb;
+            border-radius:1rem;
+            padding:1.5rem;
+            margin-bottom:1rem;
+            display:flex;
+            justify-content:space-between;
+            align-items:center;
+            transition: transform 0.2s;
+        }
+        .appt-card:hover { transform: translateY(-2px); border-color: #2563eb; }
+
+        .badge {
+            padding:0.3rem 0.75rem;
+            border-radius:999px;
+            font-size:0.75rem;
+            font-weight:600;
+        }
+        .confirmed { background:#dcfce7; color:#166534; }
+        .completed { background:#e5e7eb; color:#374151; }
+        .pending-action { background:#fee2e2; color:#991b1b; }
+
+        .btn {
+            padding:0.5rem 1.25rem;
+            border-radius:0.5rem;
+            border:none;
+            cursor:pointer;
+            font-weight:600;
+            text-decoration: none;
+        }
+        .btn-view { background:#2563eb; color:white; }
+        .btn-view:hover { background:#1d4ed8; }
+    </style>
+</head>
+<body>
+
+<div th:replace="~{navigation :: sidebar-fragment}"></div>
+
+<main class="main-content">
+    <div class="container">
+
+        <h1 style="margin-bottom:0.5rem;">My Sessions</h1>
+        <p style="color:#6b7280; margin-bottom:2rem;">Manage your upcoming and past appointments</p>
+
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('upcoming', this)">Upcoming</button>
+            <button class="tab-btn" onclick="switchTab('past', this)">Past / Pending</button>
+        </div>
+
+        <div id="upcoming-tab" class="tab-content active">
+            <div th:each="appt : ${upcomingAppointments}" class="appt-card">
+                <div>
+                    <h3 th:if="${appt.user != null}" th:text="${appt.user.firstName + ' ' + appt.user.lastName}">Student Name</h3>
+                    <h3 th:if="${appt.user == null}" style="color:#9ca3af;">Unknown Student</h3>
+                    
+                    <p style="color:#6b7280; font-size:0.9rem;">
+                        <span th:if="${appt.appointmentDate != null}" 
+                              th:text="${#temporals.format(appt.appointmentDate, 'dd MMM yyyy', T(java.util.Locale).ENGLISH)}">Date</span>
+                        • 
+                        <span th:if="${appt.appointmentTime != null}" 
+                              th:text="${#temporals.format(appt.appointmentTime, 'hh:mm a', T(java.util.Locale).ENGLISH)}">Time</span>
+                    </p>
+                </div>
+                <div style="display:flex; gap:1rem; align-items:center;">
+                    <span class="badge confirmed">Confirmed</span>
+                    <a th:href="@{/booking/professional/appointment/{id}(id=${appt.id})}" class="btn btn-view">View</a>
+                </div>
+            </div>
+            
+            <div th:if="${#lists.isEmpty(upcomingAppointments)}" style="text-align:center; padding:3rem; color:#6b7280;">
+                <div style="font-size: 2rem; margin-bottom: 1rem;">📅</div>
+                No upcoming appointments.
+            </div>
+        </div>
+
+        <div id="past-tab" class="tab-content">
+            <div th:each="appt : ${pastAppointments}" class="appt-card">
+                <div>
+                    <h3 th:if="${appt.user != null}" th:text="${appt.user.firstName + ' ' + appt.user.lastName}">Student</h3>
+                    <h3 th:if="${appt.user == null}" style="color:#9ca3af;">Unknown Student</h3>
+                    
+                    <p style="color:#6b7280; font-size:0.9rem;">
+                        <span th:if="${appt.appointmentDate != null}"
+                              th:text="${#temporals.format(appt.appointmentDate, 'dd MMM yyyy', T(java.util.Locale).ENGLISH)}">Date</span>
+                    </p>
+                </div>
+                
+                <div style="display:flex; gap:0.5rem; align-items:center;">
+                    <span th:if="${appt.status.name() == 'COMPLETED'}" class="badge completed">Completed</span>
+                    
+                    <span th:if="${appt.status.name() == 'CONFIRMED'}" class="badge pending-action">Action Required</span>
+                    
+                    <a th:if="${appt.status.name() == 'CONFIRMED'}"
+                       th:href="@{/booking/professional/appointment/{id}(id=${appt.id})}" 
+                       class="btn btn-view">Complete Now</a>
+                </div>
+            </div>
+            
+            <div th:if="${#lists.isEmpty(pastAppointments)}" style="text-align:center; padding:3rem; color:#6b7280;">
+                <div style="font-size: 2rem; margin-bottom: 1rem;">📂</div>
+                No past appointments.
+            </div>
+        </div>
+
+    </div>
+</main>
+
+<script>
+    function switchTab(id, btn) {
+        // 1. Hide all tab contents
+        document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+        
+        // 2. Deactivate all buttons
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        
+        // 3. Show target content and activate button
+        document.getElementById(id + '-tab').classList.add('active');
+        btn.classList.add('active');
+    }
+</script>
+
+</body>
+</html>

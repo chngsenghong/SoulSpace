@@ -3,6 +3,7 @@ import java.util.List;
 
 import com.soulspace.model.Comment;
 import com.soulspace.model.ForumPost;
+import com.soulspace.model.PostReaction;
 import com.soulspace.model.PostStatus;
 
 public interface ForumDAO {
@@ -15,4 +16,7 @@ public interface ForumDAO {
     List<ForumPost> filterPosts(String keyword, String category, String sort);
     List<ForumPost> findPostsByStatus(PostStatus status);
     List<ForumPost> getPendingPosts();
+    PostReaction findReaction(Long postId, Long userId);
+    void addReaction(PostReaction reaction);
+    void removeReaction(PostReaction reaction);
 }

@@ -1,10 +1,10 @@
 package com.soulspace.model;
 
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType; // 确保导入
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -21,52 +21,49 @@ public class Message {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER) 
     @JoinColumn(name = "sender_id", nullable = false)
     private User sender;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "receiver_id", nullable = false)
     private User receiver;
 
-    @Column(columnDefinition = "TEXT")
+    @Column(columnDefinition = "TEXT", nullable = false)
     private String content;
 
-    private boolean isRead;
+    @Column(name = "is_read")
+    private boolean read = false;
+
+    @Column(nullable = false)
     private LocalDateTime timestamp;
-
-    public Message() {}
-
-    public Message(User sender, User receiver, String content) {
-        this.sender = sender;
-        this.receiver = receiver;
-        this.content = content;
-        this.isRead = false;
-        this.timestamp = LocalDateTime.now();
-    }
 
     @PrePersist
     protected void onCreate() {
-        if (timestamp == null) timestamp = LocalDateTime.now();
+        timestamp = LocalDateTime.now();
     }
 
-    // Helper to format time nicely for the UI (e.g., "10:30 AM")
-    public String getFormattedTime() {
-        if (timestamp == null) return "";
-        return timestamp.format(DateTimeFormatter.ofPattern("hh:mm a"));
-    }
+    @Column(name = "conversation_status")
+private String conversationStatus = "ACTIVE"; // Default to ACTIVE
 
-    // Getters & Setters
+    // ---------- Getters & Setters ----------
+
     public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
+
     public User getSender() { return sender; }
     public void setSender(User sender) { this.sender = sender; }
+
     public User getReceiver() { return receiver; }
     public void setReceiver(User receiver) { this.receiver = receiver; }
+
     public String getContent() { return content; }
     public void setContent(String content) { this.content = content; }
-    public boolean isRead() { return isRead; }
-    public void setRead(boolean read) { isRead = read; }
+
+    public boolean isRead() { return read; }
+    public void setRead(boolean read) { this.read = read; }
+
     public LocalDateTime getTimestamp() { return timestamp; }
-    public void setTimestamp(LocalDateTime timestamp) { this.timestamp = timestamp; }
+
+    public String getConversationStatus() { return conversationStatus; }
+    public void setConversationStatus(String conversationStatus) { this.conversationStatus = conversationStatus; }
 }
