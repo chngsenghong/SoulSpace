@@ -4,7 +4,7 @@ import java.time.LocalDateTime;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType; // 确保导入
+import jakarta.persistence.FetchType; 
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -33,7 +33,7 @@ public class Message {
     private String content;
 
     @Column(name = "is_read")
-    private boolean read = false;
+    private boolean isRead = false;
 
     @Column(nullable = false)
     private LocalDateTime timestamp;
@@ -44,9 +44,8 @@ public class Message {
     }
 
     @Column(name = "conversation_status")
-private String conversationStatus = "ACTIVE"; // Default to ACTIVE
+private String conversationStatus = "ACTIVE"; 
 
-    // ---------- Getters & Setters ----------
 
     public Long getId() { return id; }
 
@@ -59,8 +58,8 @@ private String conversationStatus = "ACTIVE"; // Default to ACTIVE
     public String getContent() { return content; }
     public void setContent(String content) { this.content = content; }
 
-    public boolean isRead() { return read; }
-    public void setRead(boolean read) { this.read = read; }
+    public boolean isRead() { return isRead; }
+    public void setRead(boolean isRead) { this.isRead = isRead; }
 
     public LocalDateTime getTimestamp() { return timestamp; }
 

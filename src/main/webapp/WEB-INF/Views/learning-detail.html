@@ -17,14 +17,12 @@
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
         body { background-color: var(--bg-light); color: var(--text-dark); }
         
-        /* Layout */
         .main-content { margin-left: 16rem; padding: 2rem 3rem; min-height: 100vh; }
         @media (max-width: 1024px) { .main-content { margin-left: 0; padding: 1.5rem; } }
 
         .back-link { display: inline-flex; align-items: center; gap: 0.5rem; color: var(--text-dark); text-decoration: none; font-size: 0.9rem; margin-bottom: 1.5rem; font-weight: 600; }
         .back-link:hover { color: var(--primary-blue); }
 
-        /* --- HERO SECTION REVISED --- */
         .course-hero {
             background: linear-gradient(135deg, #3b82f6 0%, #a855f7 100%);
             border-radius: 1.5rem; 
@@ -39,7 +37,6 @@
 
         .hero-left { flex: 1.8; display: flex; flex-direction: column; justify-content: center; }
         
-        /* Glass Card for Right Side */
         .hero-right-card {
             flex: 1;
             background: rgba(255, 255, 255, 0.1);
@@ -54,7 +51,6 @@
             position: relative;
         }
 
-        /* Hero Content Styling */
         .hero-header { display: flex; align-items: flex-start; gap: 1.2rem; margin-bottom: 1.2rem; }
         .course-icon {
             background: rgba(255,255,255,0.2);
@@ -85,7 +81,6 @@
         .meta-label { opacity: 0.8; font-size: 0.75rem; font-weight: 500; }
         .meta-value { font-weight: 700; display: flex; align-items: center; gap: 0.5rem; }
 
-        /* Right Card Elements */
         .bookmark-icon { position: absolute; top: 1.5rem; right: 1.5rem; font-size: 1.2rem; cursor: pointer; opacity: 0.8; }
         .bookmark-icon:hover { opacity: 1; }
         
@@ -117,11 +112,9 @@
 
         @media (max-width: 900px) { .course-hero { flex-direction: column; } .hero-right-card { width: 100%; min-width: auto; } }
 
-        /* GRID LAYOUT FOR CONTENT */
         .course-layout-grid { display: grid; grid-template-columns: 2.2fr 1fr; gap: 2rem; }
         @media (max-width: 900px) { .course-layout-grid { grid-template-columns: 1fr; } }
 
-        /* SECTIONS */
         .content-box { background: white; border: 1px solid #e2e8f0; border-radius: 1rem; padding: 2rem; margin-bottom: 2rem; }
         .section-title { font-size: 1.2rem; font-weight: 700; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.8rem; color: var(--text-dark); }
         .section-title i { color: var(--primary-blue); }
@@ -131,7 +124,6 @@
         .objective-item { display: flex; gap: 0.75rem; align-items: flex-start; font-size: 0.95rem; color: #4b5563; }
         .objective-item i { color: var(--success-green); margin-top: 4px; }
 
-        /* Curriculum List */
         .lesson-card {
             display: flex; justify-content: space-between; align-items: center;
             padding: 1.2rem; border: 1px solid #e2e8f0; border-radius: 0.75rem;
@@ -139,7 +131,6 @@
         }
         .lesson-card:hover { border-color: var(--primary-blue); box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
         
-        /* NEW LOCKED STYLE */
         .lesson-card.locked {
             background-color: #f3f4f6;
             border-color: #e5e7eb;
@@ -153,7 +144,6 @@
         .lesson-icon { color: var(--primary-blue); background: #eff6ff; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; border-radius: 50%; font-size: 0.9rem; }
         .lesson-title { font-weight: 600; font-size: 1rem; color: var(--text-dark); }
         
-        /* Locked State */
         .locked-curriculum {
             background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 1rem; padding: 4rem 2rem;
             text-align: center; display: flex; flex-direction: column; align-items: center; gap: 1rem;
@@ -161,12 +151,10 @@
         .btn-dark { background: #0f172a; color: white; padding: 0.8rem 2rem; border-radius: 0.5rem; text-decoration: none; font-weight: 600; transition: transform 0.2s; }
         .btn-dark:hover { transform: translateY(-2px); }
 
-        /* Right Sidebar Widgets */
         .check-list { list-style: none; }
         .check-list li { display: flex; gap: 0.8rem; margin-bottom: 1rem; font-size: 0.95rem; color: #4b5563; align-items: center; }
         .check-list i { color: var(--primary-blue); font-size: 1.1rem; }
 
-        /* Instructor */
         .instructor-header { display: flex; gap: 1rem; margin-bottom: 1rem; }
         .instructor-avatar { 
             width: 50px; height: 50px; border-radius: 50%; background: var(--primary-purple); color: white; 

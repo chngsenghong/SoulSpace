@@ -35,10 +35,8 @@ public class Comment {
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
-    // 1. No-Arg Constructor (REQUIRED for Hibernate)
     public Comment() {}
 
-    // 2. Parameterized Constructor (REQUIRED for Controller)
     public Comment(ForumPost post, User user, String content) {
         this.post = post;
         this.user = user;
@@ -56,7 +54,6 @@ public class Comment {
         return createdAt.format(DateTimeFormatter.ofPattern("MMM dd, yyyy"));
     }
 
-    // Getters and Setters
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
     public ForumPost getPost() { return post; }

@@ -11,7 +11,7 @@ import jakarta.persistence.UniqueConstraint;
 
 @Entity
 @Table(name = "post_reactions", uniqueConstraints = {
-    @UniqueConstraint(columnNames = {"post_id", "user_id"}) // Ensures 1 hug per user per post
+    @UniqueConstraint(columnNames = {"post_id", "user_id"})
 })
 public class PostReaction {
 
@@ -27,7 +27,6 @@ public class PostReaction {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    // You can extend this later with an Enum (e.g., HUG, SAME_HERE, LISTENING)
     private String reactionType; 
 
     public PostReaction() {}

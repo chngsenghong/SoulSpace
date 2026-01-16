@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Edit Lesson</title>
+    <style>
+        body { font-family: system-ui; background: #f9fafb; }
+        .main-content { margin-left: 16rem; padding: 2rem; }
+        .form-card { background: white; padding: 2rem; border-radius: 1rem; border: 1px solid #e5e7eb; max-width: 800px; margin: 0 auto; }
+        .form-group { margin-bottom: 1rem; }
+        label { display: block; margin-bottom: 0.5rem; font-weight: 600; }
+        input, select, textarea { width: 100%; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 0.5rem; }
+        .btn { padding: 0.75rem 1.5rem; background: #3b82f6; color: white; border: none; border-radius: 0.5rem; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <div th:replace="~{navigation :: sidebar-fragment}"></div>
+
+    <main class="main-content">
+        <div class="form-card">
+            <h1>Lesson Details</h1>
+            
+            <form th:action="@{/learning/{cid}/lesson/save(cid=${courseId})}" th:object="${lesson}" method="post">
+                <input type="hidden" th:field="*{id}">
+                
+                <div class="form-group">
+                    <label>Lesson Title</label>
+                    <input type="text" th:field="*{title}" required>
+                </div>
+                
+                <div class="form-group">
+                    <label>Content (Text/HTML)</label>
+                    <textarea th:field="*{content}" rows="8" placeholder="Enter lesson text here..."></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>Video URL (Optional - e.g., YouTube Embed URL)</label>
+                    <input type="text" th:field="*{videoUrl}" placeholder="https://www.youtube.com/embed/...">
+                </div>
+
+                <div class="form-group">
+                    <label>Duration (Minutes)</label>
+                    <input type="number" th:field="*{durationMinutes}">
+                </div>
+
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" th:field="*{isFreePreview}" style="width:auto;"> 
+                        Allow as Free Preview?
+                    </label>
+                </div>
+
+                <div style="text-align: right; margin-top: 1rem;">
+                    <a th:href="@{/learning/edit/{id}(id=${courseId})}" style="color: #6b7280; text-decoration: none; margin-right: 1rem;">Cancel</a>
+                    <button type="submit" class="btn">Save Lesson</button>
+                </div>
+            </form>
+        </div>
+    </main>
+</body>
+</html>

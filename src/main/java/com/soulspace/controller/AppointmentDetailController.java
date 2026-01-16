@@ -26,7 +26,6 @@ public class AppointmentDetailController {
 
         Appointment appt = appointmentService.getAppointmentById(id);
 
-        // Security check: Ensure the logged-in user owns this appointment
         if (appt == null || (!appt.getUser().getId().equals(userId) && !appt.getProfessional().getId().equals(userId))) {
             return "redirect:/dashboard";
         }

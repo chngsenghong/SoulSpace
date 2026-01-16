@@ -38,7 +38,7 @@
         .btn-outline { display: inline-block; margin-top: 1rem; padding: 0.5rem 1rem; border: 1px solid #d1d5db; border-radius: 0.5rem; text-decoration: none; color: #374151; font-size: 0.875rem; font-weight: 500; transition: all 0.2s; }
         .btn-outline:hover { background: #f9fafb; border-color: #9ca3af; }
 
-        /* --- SECTION 2: QUICK ACTIONS --- */
+        /* --QUICK ACTIONS --- */
         .quick-actions { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2.5rem; }
         .action-card { background: white; padding: 1.25rem; border-radius: 1rem; border: 1px solid #e5e7eb; transition: all 0.2s; display: flex; flex-direction: column; gap: 0.75rem; text-decoration: none; color: inherit; }
         .action-card:hover { transform: translateY(-4px); box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); border-color: #3b82f6; }
@@ -66,7 +66,6 @@
     
         .alert-box { border-left: 4px solid #f59e0b; background: #fffbeb; }
 
-        /* --- FACULTY / MODERATION STYLES --- */
         .faculty-stats-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -96,12 +95,11 @@
             font-weight: 500;
         }
 
-        /* Alert Box for Moderation Queue */
         .moderation-container {
             background: white;
             border-radius: 1rem;
             border: 1px solid #e5e7eb;
-            border-left: 5px solid #f59e0b; /* Orange warning strip */
+            border-left: 5px solid #f59e0b;
             overflow: hidden;
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
         }
@@ -112,7 +110,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            background: #fffbeb; /* Light yellow background */
+            background: #fffbeb; 
         }
 
         .risk-badge {
@@ -151,7 +149,7 @@
 
         .btn-approve {
             border: none;
-            background: #059669; /* Green */
+            background: #059669;
             color: white;
             padding: 0.4rem 0.8rem;
             border-radius: 0.5rem;
@@ -506,19 +504,16 @@
 
     <script>
         function openAdminEditModal(button) {
-            // 1. Get data from the clicked button's attributes
             const id = button.getAttribute('data-id');
             const title = button.getAttribute('data-title');
             const category = button.getAttribute('data-category');
             const content = button.getAttribute('data-content');
 
-            // 2. Populate the Modal Inputs
             document.getElementById('edit-post-id').value = id;
             document.getElementById('edit-post-title').value = title;
             document.getElementById('edit-post-category').value = category;
             document.getElementById('edit-post-content').value = content;
 
-            // 3. Show the Modal
             document.getElementById('adminEditModal').style.display = 'flex';
         }
     </script>

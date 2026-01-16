@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Manage Courses</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { font-family: system-ui, sans-serif; background: #f9fafb; }
+        .main-content { margin-left: 16rem; padding: 2rem; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
+        .btn { padding: 0.5rem 1rem; border-radius: 0.5rem; text-decoration: none; color: white; background: #3b82f6; border: none; cursor: pointer; }
+        .btn-red { background: #ef4444; }
+        .table { width: 100%; border-collapse: collapse; background: white; border-radius: 0.5rem; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        th, td { padding: 1rem; text-align: left; border-bottom: 1px solid #e5e7eb; }
+        th { background: #f3f4f6; font-weight: 600; color: #4b5563; }
+        .actions { display: flex; gap: 0.5rem; }
+    </style>
+</head>
+<body>
+    <div th:replace="~{navigation :: sidebar-fragment}"></div>
+
+    <main class="main-content">
+        <div class="header">
+            <h1>Course Management</h1>
+            <a th:href="@{/learning/create}" class="btn"><i class="fas fa-plus"></i> Create New Course</a>
+        </div>
+
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Title</th>
+                    <th>Category</th>
+                    <th>Students</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="course : ${courses}">
+                    <td th:text="${course.title}" style="font-weight: 500;">Title</td>
+                    <td th:text="${course.category}">Category</td>
+                    <td th:text="${course.studentCount}">0</td>
+                    <td><span style="background:#d1fae5; color:#065f46; padding:0.2rem 0.5rem; border-radius:99px; font-size:0.8rem;">Active</span></td>
+                    <td class="actions">
+                        <a th:href="@{/learning/edit/{id}(id=${course.id})}" class="btn" style="background:white; color:#374151; border:1px solid #d1d5db;">Edit</a>
+                        <form th:action="@{/learning/delete/{id}(id=${course.id})}" method="post" onsubmit="return confirm('Delete this course?')">
+                            <button type="submit" class="btn btn-red"><i class="fas fa-trash"></i></button>
+                        </form>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </main>
+</body>
+</html>

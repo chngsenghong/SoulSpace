@@ -28,8 +28,6 @@ public class ForumService {
 
      @Transactional
     public List<ForumPost> getAllPosts() {
-        // You might need to update ForumDAO to support this specific query
-        // or filter the list here (though filtering in DB is better for performance)
         return forumDAO.findPostsByStatus(PostStatus.PUBLISHED);
     }
 
@@ -40,10 +38,8 @@ public class ForumService {
 
      @Transactional
     public void addPost(ForumPost post) {
-        // 2. Check for triggers before saving
         if (containsTriggerWords(post.getTitle()) || containsTriggerWords(post.getContent())) {
             post.setStatus(PostStatus.PENDING_REVIEW);
-            // Optional: You might want to log this or send an alert to admins here
         } else {
             post.setStatus(PostStatus.PUBLISHED);
         }
@@ -63,8 +59,6 @@ public class ForumService {
             post.setTitle(title);
             post.setCategory(category);
             post.setContent(content);
-            // Hibernate will automatically save changes to 'post' at the end of the
-            // transaction
             forumDAO.savePost(post);
         }
     }
@@ -95,7 +89,6 @@ public class ForumService {
         ForumPost post = forumDAO.getPostById(id);
         if (post != null) {
             post.setViews(post.getViews() + 1);
-            // Simply calling .size() triggers the database fetch
             post.getReactions().size(); 
         }
         return post;
@@ -112,7 +105,6 @@ public class ForumService {
         return forumDAO.filterPosts(keyword, category, sort);
     }
 
-    /// Helper method to check text
     private boolean containsTriggerWords(String text) {
         if (text == null)
             return false;
@@ -143,19 +135,16 @@ public class ForumService {
         PostReaction existingReaction = forumDAO.findReaction(postId, user.getId());
         
         if (existingReaction != null) {
-            // User is removing their support
             forumDAO.removeReaction(existingReaction);
             
-            // We also need to remove it from the Post object in memory to keep cache consistent
             ForumPost post = existingReaction.getPost();
             post.getReactions().remove(existingReaction);
         } else {
-            // User is giving support
             ForumPost post = forumDAO.getPostById(postId);
             if (post != null) {
                 PostReaction newReaction = new PostReaction(post, user);
                 forumDAO.addReaction(newReaction);
-                post.getReactions().add(newReaction); // Update in memory
+                post.getReactions().add(newReaction); 
             }
         }
     }

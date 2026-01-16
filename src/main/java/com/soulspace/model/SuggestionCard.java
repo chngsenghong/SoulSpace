@@ -6,10 +6,8 @@ public class SuggestionCard {
     private String message;
     private String iconPath;
 
-    // 1. No-Argument Constructor (Good practice)
     public SuggestionCard() {}
 
-    // 2. All-Arguments Constructor (Used in your Controller)
     public SuggestionCard(String title, String description, String message, String iconPath) {
         this.title = title;
         this.description = description;
@@ -17,7 +15,6 @@ public class SuggestionCard {
         this.iconPath = iconPath;
     }
 
-    // 3. GETTERS (Crucial! Thymeleaf needs these to read ${card.title})
     public String getTitle() {
         return title;
     }

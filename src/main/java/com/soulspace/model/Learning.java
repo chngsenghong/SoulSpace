@@ -1,9 +1,21 @@
 package com.soulspace.model;
 
-import jakarta.persistence.*;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.CollectionTable;
+import jakarta.persistence.Column;
+import jakarta.persistence.ElementCollection;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "learning_modules")
@@ -26,8 +38,6 @@ public class Learning {
     private int lessons;
     private double rating;
     
-    // --- NEW FIELD: PRICE ---
-    // Added this because your HTML calls ${course.price}
     private double price;
     
     @Column(name = "student_count")
@@ -39,22 +49,18 @@ public class Learning {
     @Column(name = "date_created")
     private LocalDate dateCreated;
 
-    // --- AI INTEGRATION FIELDS ---
     @Column(name = "ai_summary", length = 500)
     private String aiSummary; 
     
     @Column(name = "ai_tags")
     private String aiTags; 
 
-    // --- NEW FIELD: LEARNING POINTS ---
-    // Added this because your HTML calls ${course.learningPoints}
-    // ElementCollection allows storing a list of simple strings in a separate table
+
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "learning_points", joinColumns = @JoinColumn(name = "course_id"))
     @Column(name = "point")
     private List<String> learningPoints = new ArrayList<>();
 
-    // --- EXISTING: RELATIONSHIP TO LESSONS DATABASE TABLE ---
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @JoinColumn(name = "course_id") 
     private List<LearningLesson> curriculum = new ArrayList<>();
@@ -63,7 +69,6 @@ public class Learning {
         this.dateCreated = LocalDate.now();
     }
 
-    // --- GETTERS AND SETTERS ---
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
     

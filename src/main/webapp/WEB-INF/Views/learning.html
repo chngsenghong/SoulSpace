@@ -135,6 +135,13 @@
             <a th:href="@{/learning}" class="btn-tab active"><i class="fas fa-search"></i> Browse All Courses</a>
             <a th:href="@{/learning/my-courses}" class="btn-tab"><i class="fas fa-book-open"></i> My Learning</a>
             <a th:href="@{/learning/analytics}" class="btn-tab"><i class="fas fa-chart-bar"></i> Progress & Analytics</a>
+            
+            <a th:if="${session.role == 'FACULTY'}" 
+               th:href="@{/learning/manage}" 
+               class="btn-tab" 
+               style="background-color: #f0fdf4; color: #15803d; border-color: #bbf7d0; font-weight: 600;">
+                <i class="fas fa-chalkboard-teacher"></i> Manage Courses
+            </a>
         </div>
 
         <form th:action="@{/learning}" method="get" class="filter-form" id="searchForm">
