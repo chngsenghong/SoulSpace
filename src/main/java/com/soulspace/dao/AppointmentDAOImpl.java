@@ -1,5 +1,6 @@
 package com.soulspace.dao;
 
+import java.time.LocalDate;
 import java.util.List;
 
 import org.springframework.stereotype.Repository;
@@ -44,7 +45,6 @@ public class AppointmentDAOImpl implements AppointmentDAO {
 
         return query.getResultList();
     }
-
     @Override
     public List<Appointment> findByProfessional(Long professionalId) {
         String hql = """
@@ -53,10 +53,24 @@ public class AppointmentDAOImpl implements AppointmentDAO {
             ORDER BY a.appointmentDate DESC, a.appointmentTime DESC
         """;
 
-        TypedQuery<Appointment> query =
-                entityManager.createQuery(hql, Appointment.class);
+        TypedQuery<Appointment> query = entityManager.createQuery(hql, Appointment.class);
         query.setParameter("professionalId", professionalId);
+        return query.getResultList();
+    }
 
+    @Override
+    public List<Appointment> findByProfessionalAndDate(Long professionalId, LocalDate date) {
+        String hql = """
+            FROM Appointment a
+            WHERE a.professional.id = :pid 
+            AND a.appointmentDate = :date
+            AND a.status != 'CANCELLED'
+        """;
+        
+        TypedQuery<Appointment> query = entityManager.createQuery(hql, Appointment.class);
+        query.setParameter("pid", professionalId);
+        query.setParameter("date", date);
+        
         return query.getResultList();
     }
 }

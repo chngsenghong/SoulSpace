@@ -17,7 +17,7 @@ import org.springframework.web.client.RestTemplate;
 @Service
 public class GeminiService {
 
-    private static final String GEMINI_API_KEY = "GEMINI KEY"; 
+    private static final String GEMINI_API_KEY = "AIzaSyC-mnfSGsyXxEHC6evL82Bb0xHos88VLHY"; 
     private static final String API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=" + GEMINI_API_KEY;
 
     // CHANGED: Now accepts a List of history items

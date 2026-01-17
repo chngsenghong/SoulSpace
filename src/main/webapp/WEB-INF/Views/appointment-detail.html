@@ -80,12 +80,12 @@
                     <p style="text-align:center; font-size:0.875rem; color:#6b7280;">Link becomes active 5 minutes before start.</p>
                 </div>
 
-                <div class="notes-section" th:if="${appt.isPast()}">
+                <div class="notes-section" th:if="${appt.isPast() or appt.status.name() == 'COMPLETED'}">
                     <h3 style="margin-bottom:1rem;">Session Summary</h3>
                     
                     <div style="margin-bottom:1.5rem;" th:if="${appt.followUpDate != null}">
                         <h4 style="font-size:0.875rem; color:#6b7280;">Next Follow-up</h4>
-                        <p style="font-weight:600;" th:text="${#temporals.format(appt.followUpDate, 'MMM dd, yyyy')}">Jan 01</p>
+                        <p style="font-weight:600;" th:text="${#temporals.format(appt.followUpDate, 'MMM dd, yyyy'), T(java.util.Locale).ENGLISH}">Jan 01</p>
                     </div>
 
                     <div class="notes-box" th:if="${appt.professionalNotes != null}">

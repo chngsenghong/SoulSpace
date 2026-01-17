@@ -5,6 +5,9 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
 import java.util.stream.Collectors;
+import org.springframework.web.bind.annotation.ResponseBody;
+import java.util.ArrayList;
+import java.util.Map;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -175,5 +178,19 @@ public class BookingController {
             appointmentService.save(appt);
         }
         return "redirect:/booking/professional";
+    }
+
+    @GetMapping("/api/availability")
+    @ResponseBody
+    public List<String> checkAvailability(@RequestParam("profId") Long profId, @RequestParam("date") String dateStr) {
+        LocalDate date = LocalDate.parse(dateStr);
+        List<Appointment> booked = appointmentService.getBookedAppointments(profId, date);
+        
+        // Return list of taken times (e.g. ["09:00", "14:00"])
+        return booked.stream()
+                .map(a -> a.getAppointmentTime().toString())
+                // Ensure format matches HTML values (HH:mm)
+                .map(t -> t.length() == 5 ? t : t.substring(0, 5)) 
+                .collect(Collectors.toList());
     }
 }

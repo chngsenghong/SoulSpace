@@ -164,12 +164,12 @@
 
                 <label style="display:block; margin-bottom:0.5rem; font-weight:500;">Available Time</label>
                 <div class="time-slots">
-                    <div class="time-slot" onclick="selectTime(this, '09:00')">09:00 AM</div>
-                    <div class="time-slot" onclick="selectTime(this, '10:00')">10:00 AM</div>
-                    <div class="time-slot" onclick="selectTime(this, '11:00')">11:00 AM</div>
-                    <div class="time-slot" onclick="selectTime(this, '14:00')">02:00 PM</div>
-                    <div class="time-slot" onclick="selectTime(this, '15:00')">03:00 PM</div>
-                    <div class="time-slot" onclick="selectTime(this, '16:00')">04:00 PM</div>
+                    <div class="time-slot" data-time-label="09:00 AM" onclick="selectTime(this, '09:00')">09:00 AM</div>
+                    <div class="time-slot" data-time-label="10:00 AM" onclick="selectTime(this, '10:00')">10:00 AM</div>
+                    <div class="time-slot" data-time-label="11:00 AM" onclick="selectTime(this, '11:00')">11:00 AM</div>
+                    <div class="time-slot" data-time-label="02:00 PM" onclick="selectTime(this, '14:00')">02:00 PM</div>
+                    <div class="time-slot" data-time-label="03:00 PM" onclick="selectTime(this, '15:00')">03:00 PM</div>
+                    <div class="time-slot" data-time-label="04:00 PM" onclick="selectTime(this, '16:00')">04:00 PM</div>
                 </div>
                 <input type="hidden" name="time" id="timeInput" required>
                 <label style="display:block; margin-bottom:0.5rem; font-weight:500; margin-top:1rem;">Session Type</label>
@@ -189,7 +189,11 @@
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const dateInput = document.getElementById('dateInput');
-            if(dateInput) dateInput.min = new Date().toISOString().split('T')[0];
+            if(dateInput) {
+                dateInput.min = new Date().toISOString().split('T')[0];
+                // Listen for date changes
+                dateInput.addEventListener('change', fetchAvailability);
+            }
         });
 
         function switchTab(tabId, btn) {
@@ -204,9 +208,15 @@
             document.getElementById('modalProfName').innerText = 'with Dr. ' + lastName;
             document.getElementById('bookingModal').classList.add('active');
             
-            // Reset selection
-            document.querySelectorAll('.time-slot').forEach(s => s.classList.remove('selected'));
+            // Reset inputs
+            document.querySelectorAll('.time-slot').forEach(s => {
+                s.classList.remove('selected');
+                s.style.display = 'block'; // Reset visibility
+                s.style.opacity = '1';
+                s.style.pointerEvents = 'auto';
+            });
             document.getElementById('timeInput').value = '';
+            document.getElementById('dateInput').value = ''; // Force user to pick date to trigger check
         }
 
         function closeModal() {
@@ -217,6 +227,59 @@
             document.querySelectorAll('.time-slot').forEach(s => s.classList.remove('selected'));
             el.classList.add('selected');
             document.getElementById('timeInput').value = time;
+        }
+
+        // --- NEW: FETCH AVAILABILITY ---
+        async function fetchAvailability() {
+            const profId = document.getElementById('profIdInput').value;
+            const dateVal = document.getElementById('dateInput').value;
+            
+            if (!profId || !dateVal) return;
+
+            // Reset slots first
+            const slots = document.querySelectorAll('.time-slot');
+            slots.forEach(s => {
+                s.classList.remove('selected');
+                s.style.display = 'block';
+                s.style.backgroundColor = 'white';
+                s.style.color = 'black';
+                s.style.pointerEvents = 'auto';
+                s.innerText = s.getAttribute('data-time-label'); // Restore text
+            });
+            document.getElementById('timeInput').value = '';
+
+            try {
+                // Call the Java API
+                const response = await fetch(`/soulspace/booking/api/availability?profId=${profId}&date=${dateVal}`);
+                if (!response.ok) throw new Error("Network error");
+                
+                const bookedTimes = await response.json(); // e.g. ["09:00", "14:00"]
+
+                // Hide/Disable booked slots
+                slots.forEach(slot => {
+                    // Get the time value from the click handler
+                    // We need to parse '09:00' from the onclick attribute or text
+                    // Let's rely on a mapping or simple text check
+                    
+                    // Helper to extract time from onclick="selectTime(this, '09:00')"
+                    const timeValue = slot.getAttribute('onclick').match(/'(.*?)'/)[1]; 
+                    
+                    // Check if this time is in the booked list
+                    // We compare "09:00" vs "09:00:00" (startWith handles both)
+                    const isBooked = bookedTimes.some(t => t.startsWith(timeValue));
+
+                    if (isBooked) {
+                        slot.style.backgroundColor = '#f3f4f6';
+                        slot.style.color = '#9ca3af';
+                        slot.style.pointerEvents = 'none'; // Unclickable
+                        slot.style.textDecoration = 'line-through';
+                        slot.title = "Already Booked";
+                    }
+                });
+
+            } catch (error) {
+                console.error("Error fetching availability:", error);
+            }
         }
     </script>
 </body>

@@ -1,7 +1,9 @@
 package com.soulspace.service;
 
-import com.soulspace.model.Appointment;
+import java.time.LocalDate;
 import java.util.List;
+
+import com.soulspace.model.Appointment;
 
 public interface AppointmentService {
 
@@ -12,4 +14,6 @@ public interface AppointmentService {
     List<Appointment> getAppointmentsForStudent(Long studentId);
 
     List<Appointment> getAppointmentsByProfessional(Long professionalId);
+    
+    List<Appointment> getBookedAppointments(Long professionalId, LocalDate date);
 }

@@ -1,11 +1,13 @@
 package com.soulspace.service;
 
-import com.soulspace.dao.AppointmentDAO;
-import com.soulspace.model.Appointment;
+import java.time.LocalDate;
+import java.util.List; // IMPORT THIS
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
+import com.soulspace.dao.AppointmentDAO;
+import com.soulspace.model.Appointment;
 
 @Service
 @Transactional
@@ -35,5 +37,10 @@ public class AppointmentServiceImpl implements AppointmentService {
     @Override
     public List<Appointment> getAppointmentsByProfessional(Long professionalId) {
         return appointmentDAO.findByProfessional(professionalId);
+    }
+
+    @Override
+    public List<Appointment> getBookedAppointments(Long professionalId, LocalDate date) {
+        return appointmentDAO.findByProfessionalAndDate(professionalId, date);
     }
 }
