@@ -66,4 +66,9 @@ public class UserDAOImpl implements UserDAO {
         query.setParameter("role", role);
         return query.getResultList();
     }
+    @Override
+    public List<User> findAll() {
+        TypedQuery<User> query = entityManager.createQuery("FROM User", User.class);
+        return query.getResultList();
+    }
 }
