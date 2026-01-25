@@ -23,20 +23,61 @@ public class Enrollment {
     @Column(name = "progress_percent")
     private int progressPercent;
 
+    @Column(name = "is_completed")
+    private boolean isCompleted;
+
     public Enrollment() {
         this.enrollmentDate = LocalDate.now();
         this.progressPercent = 0;
+        this.isCompleted = false;
     }
 
     // Getters and Setters
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
-    public Long getUserId() { return userId; }
-    public void setUserId(Long userId) { this.userId = userId; }
-    public Learning getCourse() { return course; }
-    public void setCourse(Learning course) { this.course = course; }
-    public LocalDate getEnrollmentDate() { return enrollmentDate; }
-    public void setEnrollmentDate(LocalDate enrollmentDate) { this.enrollmentDate = enrollmentDate; }
-    public int getProgressPercent() { return progressPercent; }
-    public void setProgressPercent(int progressPercent) { this.progressPercent = progressPercent; }
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public Long getUserId() {
+        return userId;
+    }
+
+    public void setUserId(Long userId) {
+        this.userId = userId;
+    }
+
+    public Learning getCourse() {
+        return course;
+    }
+
+    public void setCourse(Learning course) {
+        this.course = course;
+    }
+
+    public LocalDate getEnrollmentDate() {
+        return enrollmentDate;
+    }
+
+    public void setEnrollmentDate(LocalDate enrollmentDate) {
+        this.enrollmentDate = enrollmentDate;
+    }
+
+    public int getProgressPercent() {
+        return progressPercent;
+    }
+
+    public void setProgressPercent(int progressPercent) {
+        this.progressPercent = progressPercent;
+    }
+
+    public boolean isCompleted() {
+        return isCompleted;
+    }
+
+    public void setCompleted(boolean completed) {
+        isCompleted = completed;
+    }
 }

@@ -35,19 +35,20 @@ public class HibernateConfig {
     public LocalContainerEntityManagerFactoryBean entityManagerFactory() {
         LocalContainerEntityManagerFactoryBean em = new LocalContainerEntityManagerFactoryBean();
         em.setDataSource(dataSource());
-        
-        // This effectively replaces 'setPackagesToScan' from the old sessionFactory
-        em.setPackagesToScan("com.soulspace"); 
 
-        // We need this adapter to tell Spring we are using Hibernate as the implementation
+        // This effectively replaces 'setPackagesToScan' from the old sessionFactory
+        em.setPackagesToScan("com.soulspace");
+
+        // We need this adapter to tell Spring we are using Hibernate as the
+        // implementation
         HibernateJpaVendorAdapter vendorAdapter = new HibernateJpaVendorAdapter();
         em.setJpaVendorAdapter(vendorAdapter);
 
         Properties props = new Properties();
-        props.setProperty("hibernate.dialect", "org.hibernate.dialect.MySQLDialect");
+        // props.setProperty("hibernate.dialect", "org.hibernate.dialect.MySQLDialect");
         props.setProperty("hibernate.show_sql", "true");
         props.setProperty("hibernate.hbm2ddl.auto", "update");
-        
+
         em.setJpaProperties(props);
 
         return em;

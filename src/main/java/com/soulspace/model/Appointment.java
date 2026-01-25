@@ -55,6 +55,7 @@ public class Appointment {
     /* ================= ENUMS ================= */
 
     public enum AppointmentStatus {
+        PENDING,
         CONFIRMED,
         COMPLETED,
         CANCELLED
@@ -76,7 +77,7 @@ public class Appointment {
     }
 
     // --- SAFETY METHODS FOR HTML (Prevents 500 Errors) ---
-    
+
     public String getDay() {
         return appointmentDate != null ? String.valueOf(appointmentDate.getDayOfMonth()) : "--";
     }
@@ -99,29 +100,71 @@ public class Appointment {
 
     /* ================= GETTERS / SETTERS ================= */
 
-    public Long getId() { return id; }
+    public Long getId() {
+        return id;
+    }
 
-    public User getUser() { return user; }
-    public void setUser(User user) { this.user = user; }
+    public User getUser() {
+        return user;
+    }
 
-    public User getProfessional() { return professional; }
-    public void setProfessional(User professional) { this.professional = professional; }
+    public void setUser(User user) {
+        this.user = user;
+    }
 
-    public LocalDate getAppointmentDate() { return appointmentDate; }
-    public void setAppointmentDate(LocalDate appointmentDate) { this.appointmentDate = appointmentDate; }
+    public User getProfessional() {
+        return professional;
+    }
 
-    public LocalTime getAppointmentTime() { return appointmentTime; }
-    public void setAppointmentTime(LocalTime appointmentTime) { this.appointmentTime = appointmentTime; }
+    public void setProfessional(User professional) {
+        this.professional = professional;
+    }
 
-    public AppointmentStatus getStatus() { return status; }
-    public void setStatus(AppointmentStatus status) { this.status = status; }
+    public LocalDate getAppointmentDate() {
+        return appointmentDate;
+    }
 
-    public SessionType getType() { return type; }
-    public void setType(SessionType type) { this.type = type; }
+    public void setAppointmentDate(LocalDate appointmentDate) {
+        this.appointmentDate = appointmentDate;
+    }
 
-    public String getProfessionalNotes() { return professionalNotes; }
-    public void setProfessionalNotes(String professionalNotes) { this.professionalNotes = professionalNotes; }
+    public LocalTime getAppointmentTime() {
+        return appointmentTime;
+    }
 
-    public LocalDate getFollowUpDate() { return followUpDate; }
-    public void setFollowUpDate(LocalDate followUpDate) { this.followUpDate = followUpDate; }
+    public void setAppointmentTime(LocalTime appointmentTime) {
+        this.appointmentTime = appointmentTime;
+    }
+
+    public AppointmentStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(AppointmentStatus status) {
+        this.status = status;
+    }
+
+    public SessionType getType() {
+        return type;
+    }
+
+    public void setType(SessionType type) {
+        this.type = type;
+    }
+
+    public String getProfessionalNotes() {
+        return professionalNotes;
+    }
+
+    public void setProfessionalNotes(String professionalNotes) {
+        this.professionalNotes = professionalNotes;
+    }
+
+    public LocalDate getFollowUpDate() {
+        return followUpDate;
+    }
+
+    public void setFollowUpDate(LocalDate followUpDate) {
+        this.followUpDate = followUpDate;
+    }
 }
