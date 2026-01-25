@@ -1,62 +1,303 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
+
 <head>
-<meta charset="UTF-8">
-<title>Session Details</title>
-<style>
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f9fafb; }
-    .main-content { margin-left: 16rem; padding: 2rem; }
-    .card { background: white; border-radius: 1rem; padding: 2rem; max-width: 800px; margin: auto; border: 1px solid #e5e7eb; }
-    
-    h2 { margin-bottom: 0.5rem; color: #111827; }
-    .time-badge { display: inline-block; background: #eff6ff; color: #1d4ed8; padding: 0.25rem 0.75rem; border-radius: 99px; font-size: 0.9rem; font-weight: 500; margin-bottom: 2rem; }
+    <meta charset="UTF-8">
+    <title>SoulSpace - Session Details</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-    label { display: block; font-weight: 600; margin-bottom: 0.5rem; color: #374151; margin-top: 1.5rem; }
-    textarea, input, select { width: 100%; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 0.5rem; font-family: inherit; }
-    textarea { resize: vertical; min-height: 120px; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f9fafb;
+            color: #1a1a1a;
+            min-height: 100vh;
+        }
 
-    .btn { margin-top: 2rem; padding: 0.75rem 1.5rem; background: #2563eb; color: white; border: none; border-radius: 0.5rem; font-weight: 600; cursor: pointer; transition: background 0.2s; }
-    .btn:hover { background: #1d4ed8; }
-    
-    .back-link { display: inline-block; margin-bottom: 1rem; color: #6b7280; text-decoration: none; font-size: 0.9rem; }
-    .back-link:hover { color: #111827; }
-</style>
+        .main-content {
+            margin-left: 16rem;
+            min-height: 100vh;
+            padding: 2rem;
+            transition: margin-left 0.3s ease;
+        }
+
+        @media (max-width: 1024px) {
+            .main-content {
+                margin-left: 0;
+                padding: 1.5rem;
+            }
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: #6b7280;
+            text-decoration: none;
+            margin-bottom: 2rem;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+
+        .back-link:hover {
+            color: #111827;
+        }
+
+        .card {
+            background: white;
+            border-radius: 1rem;
+            border: 1px solid #e5e7eb;
+            padding: 2.5rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .header-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 2rem;
+            border-bottom: 1px solid #f3f4f6;
+            padding-bottom: 2rem;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 1.25rem;
+        }
+
+        .avatar {
+            width: 4.5rem;
+            height: 4.5rem;
+            background: #3b82f6;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.75rem;
+            font-weight: 600;
+        }
+
+        .status-badge {
+            padding: 0.5rem 1rem;
+            border-radius: 99px;
+            font-weight: 600;
+            font-size: 0.875rem;
+        }
+
+        .status-CONFIRMED {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .status-COMPLETED {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .status-PENDING {
+            background: #fff7ed;
+            color: #9a3412;
+        }
+
+        .status-CANCELLED {
+            background: #fef2f2;
+            color: #991b1b;
+        }
+
+        .session-info {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-bottom: 2.5rem;
+            background: #f9fafb;
+            padding: 1.5rem;
+            border-radius: 0.75rem;
+        }
+
+        .info-item h4 {
+            color: #6b7280;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.5rem;
+        }
+
+        .info-item p {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #111827;
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            color: #374151;
+            font-size: 0.95rem;
+        }
+
+        textarea,
+        input {
+            width: 100%;
+            padding: 0.875rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            font-family: inherit;
+            font-size: 1rem;
+            transition: border-color 0.2s;
+            background: white;
+        }
+
+        textarea:focus,
+        input:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 150px;
+        }
+
+        .actions {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2.5rem;
+            align-items: center;
+        }
+
+        .btn {
+            padding: 0.875rem 2rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 1px solid transparent;
+            font-size: 1rem;
+        }
+
+        .btn-primary {
+            background: #2563eb;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #1d4ed8;
+        }
+
+        .btn-message {
+            background: white;
+            border-color: #2563eb;
+            color: #2563eb;
+            text-decoration: none;
+            text-align: center;
+        }
+
+        .btn-message:hover {
+            background: #eff6ff;
+        }
+
+        .help-text {
+            font-size: 0.875rem;
+            color: #6b7280;
+            margin-top: 0.5rem;
+        }
+    </style>
 </head>
+
 <body>
 
-<div th:replace="~{navigation :: sidebar-fragment}"></div>
+    <div th:replace="~{navigation :: sidebar-fragment}"></div>
 
-<main class="main-content">
-    
-    <a th:href="@{/booking/professional}" class="back-link">← Back to Schedule</a>
+    <main class="main-content">
+        <div class="container">
 
-    <div class="card">
-        <h2 th:if="${appt.user != null}" th:text="${appt.user.firstName + ' ' + appt.user.lastName}">Student Name</h2>
-        <h2 th:if="${appt.user == null}" style="color:#9ca3af;">Unknown Student</h2>
+            <a th:href="@{/booking/professional}" class="back-link">
+                <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                </svg>
+                Back to Schedule
+            </a>
 
-        <div class="time-badge">
-            <span th:if="${appt.appointmentDate != null}" 
-                  th:text="${#temporals.format(appt.appointmentDate, 'EEEE, dd MMMM yyyy', T(java.util.Locale).ENGLISH)}">Date</span>
-            <span> • </span>
-            <span th:if="${appt.appointmentTime != null}" 
-                  th:text="${#temporals.format(appt.appointmentTime, 'hh:mm a', T(java.util.Locale).ENGLISH)}">Time</span>
+            <div class="card">
+                <div class="header-section">
+                    <div class="user-info">
+                        <div class="avatar"
+                            th:text="${appt.user != null ? #strings.substring(appt.user.firstName, 0, 1) : 'S'}">S</div>
+                        <div>
+                            <h1 style="font-size:1.75rem; margin-bottom:0.25rem;"
+                                th:text="${appt.user?.firstName + ' ' + appt.user?.lastName ?: 'Unknown Student'}">
+                                Student Name</h1>
+                            <p style="color:#6b7280;">Student Case • ID: <span th:text="${appt.user?.id}">0</span></p>
+                        </div>
+                    </div>
+                    <span th:class="'status-badge status-' + ${appt.status}" th:text="${appt.status}">Confirmed</span>
+                </div>
+
+                <div class="session-info">
+                    <div class="info-item">
+                        <h4>Session Date</h4>
+                        <p
+                            th:text="${#temporals.format(appt.appointmentDate, 'EEEE, dd MMM yyyy', T(java.util.Locale).ENGLISH)}">
+                            Date</p>
+                    </div>
+                    <div class="info-item">
+                        <h4>Scheduled Time</h4>
+                        <p th:text="${appt.formattedTime}">10:00 AM</p>
+                    </div>
+                    <div class="info-item">
+                        <h4>Session Mode</h4>
+                        <p th:text="${appt.type.name() == 'VIDEO' ? 'Video Call' : 'In-Person'}">Mode</p>
+                    </div>
+                    <div class="info-item">
+                        <h4>Contact Email</h4>
+                        <p th:text="${appt.user?.email}">student@email.com</p>
+                    </div>
+                </div>
+
+                <form th:action="@{/booking/professional/appointment/{id}/update(id=${appt.id})}" method="post">
+                    <div style="margin-bottom: 2rem;">
+                        <label>Private Clinical Notes</label>
+                        <textarea name="professionalNotes"
+                            placeholder="Document the session outcomes, observations, and key discussion points..."
+                            th:text="${appt.professionalNotes}"></textarea>
+                        <p class="help-text">These notes are only visible to you.</p>
+                    </div>
+
+                    <div style="margin-bottom: 0.5rem;">
+                        <label>Recommended Follow-up</label>
+                        <input type="date" name="followUpDate" th:value="${appt.followUpDate}" />
+                        <p class="help-text">Optional: Suggest a date for the next session.</p>
+                    </div>
+
+                    <div class="actions">
+                        <button th:if="${appt.status.name() != 'COMPLETED'}" type="submit"
+                            class="btn btn-primary">Complete & Archive Session</button>
+                        <button th:if="${appt.status.name() == 'COMPLETED'}" type="submit"
+                            class="btn btn-primary">Update Notes</button>
+
+                        <a th:href="@{/messaging(chatWith=${appt.user?.id})}" class="btn btn-message">
+                            Message <span th:text="${appt.user?.firstName}">Student</span>
+                        </a>
+                    </div>
+                </form>
+            </div>
         </div>
-        
-        <form th:action="@{/booking/professional/appointment/{id}/update(id=${appt.id})}" method="post">
-
-            <label>Session Notes (Private)</label>
-            <textarea name="professionalNotes" rows="5" placeholder="Enter clinical notes here..."
-                      th:text="${appt.professionalNotes}"></textarea>
-
-            <label>Recommended Follow-up Date</label>
-            <input type="date" name="followUpDate"
-                   th:value="${appt.followUpDate}"/>
-
-            <button type="submit" class="btn">Save & Complete Session</button>
-        </form>
-
-    </div>
-</main>
+    </main>
 
 </body>
+
 </html>

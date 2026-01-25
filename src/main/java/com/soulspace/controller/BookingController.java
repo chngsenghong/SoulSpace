@@ -20,6 +20,7 @@ import com.soulspace.service.AppointmentService;
 import com.soulspace.service.UserService;
 
 import jakarta.servlet.http.HttpSession;
+import jakarta.servlet.http.HttpServletResponse;
 
 @Controller
 @RequestMapping("/booking")
@@ -37,20 +38,29 @@ public class BookingController {
     @GetMapping("/demo/booking/student")
     public String demoStudentBooking(HttpSession session) {
         session.setAttribute("userId", 1L);
+        session.setAttribute("role", "STUDENT");
+        session.setAttribute("user", "John Student");
+        session.setAttribute("email", "student@example.com");
         return "redirect:/booking";
     }
 
     @GetMapping("/demo/booking/professional")
     public String demoProfessionalBooking(HttpSession session) {
-        session.setAttribute("userId", 3L);
+        session.setAttribute("userId", 2L); // Sarah Jenkins
+        session.setAttribute("role", "PROFESSIONAL");
+        session.setAttribute("user", "Sarah Jenkins");
+        session.setAttribute("email", "pro@example.com");
         return "redirect:/booking/professional";
     }
 
     /* ================= STUDENT SECTION ================= */
 
     @GetMapping
-    public String studentBooking(Model model) {
-        Long studentId = 1L; 
+    public String studentBooking(HttpSession session, Model model) {
+        Long studentId = (Long) session.getAttribute("userId");
+        if (studentId == null)
+            return "redirect:/login";
+
         model.addAttribute("professionals", userService.getProfessionals());
         model.addAttribute("myAppointments", appointmentService.getAppointmentsForStudent(studentId));
         return "booking";
@@ -58,12 +68,17 @@ public class BookingController {
 
     @PostMapping
     public String bookAppointment(
-        @RequestParam("professionalId") Long professionalId,
-        @RequestParam("date") String date,
-        @RequestParam("time") String time,
-        @RequestParam("type") String type) { 
+            HttpSession session,
+            @RequestParam("professionalId") Long professionalId,
+            @RequestParam("date") String date,
+            @RequestParam("time") String time,
+            @RequestParam("type") String type) {
 
-        User student = userService.getUserById(1L);
+        Long studentId = (Long) session.getAttribute("userId");
+        if (studentId == null)
+            return "redirect:/login";
+
+        User student = userService.getUserById(studentId);
         User professional = userService.getUserById(professionalId);
 
         Appointment appt = new Appointment();
@@ -72,20 +87,47 @@ public class BookingController {
         appt.setAppointmentDate(LocalDate.parse(date));
         appt.setAppointmentTime(LocalTime.parse(time));
         appt.setType(Appointment.SessionType.valueOf(type.toUpperCase()));
-        appt.setStatus(Appointment.AppointmentStatus.CONFIRMED);
+
+        // When a student books, it starts as PENDING for professional to review
+        appt.setStatus(Appointment.AppointmentStatus.PENDING);
 
         appointmentService.save(appt);
         return "redirect:/booking?success=true";
     }
 
     @PostMapping("/appointment/{id}/cancel")
-    public String cancel(@PathVariable("id") Long id) { 
+    public String cancel(@PathVariable("id") Long id, HttpSession session) {
+        Long userId = (Long) session.getAttribute("userId");
+        if (userId == null)
+            return "redirect:/login";
+
         Appointment appt = appointmentService.getAppointmentById(id);
-        if (appt != null) {
+        if (appt != null && appt.getUser().getId().equals(userId)) {
             appt.setStatus(Appointment.AppointmentStatus.CANCELLED);
             appointmentService.save(appt);
         }
         return "redirect:/booking";
+    }
+
+    @PostMapping("/appointment/{id}/reschedule")
+    public String reschedule(
+            @PathVariable("id") Long id,
+            @RequestParam("date") String date,
+            @RequestParam("time") String time,
+            HttpSession session) {
+
+        Long userId = (Long) session.getAttribute("userId");
+        if (userId == null)
+            return "redirect:/login";
+
+        Appointment appt = appointmentService.getAppointmentById(id);
+        if (appt != null && appt.getUser().getId().equals(userId)) {
+            appt.setAppointmentDate(LocalDate.parse(date));
+            appt.setAppointmentTime(LocalTime.parse(time));
+            appt.setStatus(Appointment.AppointmentStatus.PENDING); // Back to pending on change
+            appointmentService.save(appt);
+        }
+        return "redirect:/booking?rescheduled=true";
     }
 
     /* ================= PROFESSIONAL SECTION ================= */
@@ -93,18 +135,20 @@ public class BookingController {
     @GetMapping("/professional")
     public String professionalView(HttpSession session, Model model) {
         Long professionalId = (Long) session.getAttribute("userId");
-        if (professionalId == null) return "redirect:/booking/demo/booking/professional";
+        if (professionalId == null)
+            return "redirect:/login";
 
         List<Appointment> allAppointments = appointmentService.getAppointmentsByProfessional(professionalId);
-        
+
         LocalDateTime now = LocalDateTime.now();
 
-        // 1. UPCOMING: Must be CONFIRMED + In the FUTURE
-        // If an appointment is COMPLETED, it will fail the first filter, so it won't show here.
+        // 1. UPCOMING: Must be (CONFIRMED or PENDING) + In the FUTURE
         List<Appointment> upcoming = allAppointments.stream()
-                .filter(a -> a.getStatus() == Appointment.AppointmentStatus.CONFIRMED)
+                .filter(a -> a.getStatus() == Appointment.AppointmentStatus.CONFIRMED
+                        || a.getStatus() == Appointment.AppointmentStatus.PENDING)
                 .filter(a -> {
-                    if (a.getAppointmentDate() == null || a.getAppointmentTime() == null) return false;
+                    if (a.getAppointmentDate() == null || a.getAppointmentTime() == null)
+                        return false;
                     LocalDateTime apptTime = LocalDateTime.of(a.getAppointmentDate(), a.getAppointmentTime());
                     return apptTime.isAfter(now);
                 })
@@ -115,11 +159,13 @@ public class BookingController {
         List<Appointment> past = allAppointments.stream()
                 .filter(a -> {
                     // Logic: Always show COMPLETED items here
-                    if (a.getStatus() == Appointment.AppointmentStatus.COMPLETED) return true;
-                    
+                    if (a.getStatus() == Appointment.AppointmentStatus.COMPLETED)
+                        return true;
+
                     // Logic: If CONFIRMED but missed (date passed), show here too
                     if (a.getStatus() == Appointment.AppointmentStatus.CONFIRMED) {
-                        if (a.getAppointmentDate() == null || a.getAppointmentTime() == null) return false;
+                        if (a.getAppointmentDate() == null || a.getAppointmentTime() == null)
+                            return false;
                         LocalDateTime apptTime = LocalDateTime.of(a.getAppointmentDate(), a.getAppointmentTime());
                         return apptTime.isBefore(now) || apptTime.equals(now);
                     }
@@ -131,15 +177,116 @@ public class BookingController {
         return "professional-booking";
     }
 
+    @PostMapping("/professional/appointment/{id}/confirm")
+    public String confirmAppointment(@PathVariable("id") Long id, HttpSession session) {
+        Long userId = (Long) session.getAttribute("userId");
+        Appointment appt = appointmentService.getAppointmentById(id);
+        if (appt != null && appt.getProfessional().getId().equals(userId)) {
+            appt.setStatus(Appointment.AppointmentStatus.CONFIRMED);
+            appointmentService.save(appt);
+        }
+        return "redirect:/booking/professional?success=true";
+    }
+
+    @PostMapping("/professional/appointment/{id}/reject")
+    public String rejectAppointment(@PathVariable("id") Long id, HttpSession session) {
+        Long userId = (Long) session.getAttribute("userId");
+        Appointment appt = appointmentService.getAppointmentById(id);
+        if (appt != null && appt.getProfessional().getId().equals(userId)) {
+            appt.setStatus(Appointment.AppointmentStatus.CANCELLED);
+            appointmentService.save(appt);
+        }
+        return "redirect:/booking/professional";
+    }
+
+    @PostMapping("/professional/appointment/{id}/cancel")
+    public String professionalCancel(@PathVariable("id") Long id, HttpSession session) {
+        Long userId = (Long) session.getAttribute("userId");
+        Appointment appt = appointmentService.getAppointmentById(id);
+        if (appt != null && appt.getProfessional().getId().equals(userId)) {
+            appt.setStatus(Appointment.AppointmentStatus.CANCELLED);
+            appointmentService.save(appt);
+        }
+        return "redirect:/booking/professional";
+    }
+
+    @PostMapping("/professional/appointment/{id}/reschedule")
+    public String professionalReschedule(
+            @PathVariable("id") Long id,
+            @RequestParam("date") String date,
+            @RequestParam("time") String time,
+            HttpSession session) {
+
+        Long userId = (Long) session.getAttribute("userId");
+        Appointment appt = appointmentService.getAppointmentById(id);
+        if (appt != null && appt.getProfessional().getId().equals(userId)) {
+            appt.setAppointmentDate(LocalDate.parse(date));
+            appt.setAppointmentTime(LocalTime.parse(time));
+            appt.setStatus(Appointment.AppointmentStatus.CONFIRMED); // Professional reschedule auto-confirms
+            appointmentService.save(appt);
+        }
+        return "redirect:/booking/professional?success=true";
+    }
+
+    @PostMapping("/professional/book-followup")
+    public void bookFollowUp(
+            @RequestParam("studentId") Long studentId,
+            @RequestParam("date") String date,
+            @RequestParam("time") String time,
+            @RequestParam("type") String type,
+            @RequestParam(value = "source", required = false) String source,
+            HttpSession session,
+            HttpServletResponse response) throws java.io.IOException {
+
+        Long profId = (Long) session.getAttribute("userId");
+        if (profId == null) {
+            response.sendRedirect(session.getServletContext().getContextPath() + "/login");
+            return;
+        }
+
+        try {
+            User student = userService.getUserById(studentId);
+            User professional = userService.getUserById(profId);
+
+            Appointment appt = new Appointment();
+            appt.setUser(student);
+            appt.setProfessional(professional);
+            appt.setAppointmentDate(LocalDate.parse(date));
+            appt.setAppointmentTime(LocalTime.parse(time));
+            appt.setType(Appointment.SessionType.valueOf(type.toUpperCase()));
+            appt.setStatus(Appointment.AppointmentStatus.CONFIRMED); // Professional follow-up auto-confirms
+
+            appointmentService.save(appt);
+
+            if (source != null && source.contains("ajax")) {
+                response.setStatus(HttpServletResponse.SC_OK);
+                response.getWriter().write("OK");
+                return;
+            }
+
+            String redirectUrl = session.getServletContext().getContextPath() + "/booking/professional?followup=true";
+            if ("messaging".equals(source)) {
+                redirectUrl = session.getServletContext().getContextPath() + "/messaging?chatWith=" + studentId
+                        + "&followup=true";
+            }
+            response.sendRedirect(redirectUrl);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            response.getWriter().write("Error: " + e.getMessage());
+        }
+    }
+
     @GetMapping("/professional/appointment/{id}")
     public String professionalAppointmentDetail(@PathVariable("id") Long id, HttpSession session, Model model) {
         Long userId = (Long) session.getAttribute("userId");
-        if (userId == null) return "redirect:/booking/demo/booking/professional";
+        if (userId == null)
+            return "redirect:/login";
 
         Appointment appt = appointmentService.getAppointmentById(id);
-        
-        // Relaxed security check to prevent "empty" redirects during debugging
-        if (appt != null) {
+
+        if (appt != null && appt.getProfessional().getId().equals(userId)) {
             model.addAttribute("appt", appt);
             return "professional-appointment-detail";
         }
@@ -152,25 +299,18 @@ public class BookingController {
             @PathVariable("id") Long id,
             @RequestParam(value = "professionalNotes", required = false) String notes,
             @RequestParam(value = "followUpDate", required = false) String followUpDate) {
-        
+
         Appointment appt = appointmentService.getAppointmentById(id);
-        
+
         if (appt != null) {
-            // 1. Save Notes
             appt.setProfessionalNotes(notes);
-            
-            // 2. Save Follow Up Date (if provided)
             if (followUpDate != null && !followUpDate.trim().isEmpty()) {
                 appt.setFollowUpDate(LocalDate.parse(followUpDate));
             }
-            
-            // 3. IMPORTANT: Set Status to COMPLETED
             appt.setStatus(Appointment.AppointmentStatus.COMPLETED);
-            
-            // 4. Save to Database
             appointmentService.save(appt);
         }
 
-        return "redirect:/booking/professional";
+        return "redirect:/booking/professional?success=true";
     }
 }
